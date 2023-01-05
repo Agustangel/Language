@@ -7,7 +7,7 @@
 #include "debug.h"
 
 
-char* String = NULL;
+
 //=========================================================================
 
 variable_t* varCtor(elem_t data, name_t name)
@@ -135,12 +135,14 @@ int programDtor(program_t* program)
 
 //=========================================================================
 
-size_t skipSeparator()
+size_t skipSeparator(char** string)
 {   
+    CHECK(string  !=  NULL, ERR_LANG_NULL_PTR);
+
     size_t count = 0;
-    while(isspace((int)(unsigned char)*String))
+    while(isspace((int)(unsigned char)*string))
     {
-        ++(String);
+        ++(string);
         ++count;
     }
 
@@ -152,12 +154,11 @@ size_t skipSeparator()
 node_t* makeAST(program_t* program)
 {
     CHECK(program != NULL, NULL);
-    String = program->buffer;
 
     node_t* root = NULL;
     if(*program->current_symbol != '\0')
     {
-        skipSeparator();
+        skipSeparator(&program->current_symbol);
         root = getG();
         CHECK(root != NULL, NULL);
     }
@@ -167,34 +168,35 @@ node_t* makeAST(program_t* program)
 
 //-------------------------------------------------------------------
 
-node_t* getG()
+node_t* getG(program_t* program)
 {
     node_t* val = getE();
-    CHECK(*String == '\0', NULL);
+    CHECK(*program->current_symbol == '\0', NULL);
 
     return val;
 }
 
 //-------------------------------------------------------------------
 
-node_t* getN()
+node_t* getN(program_t* program)
 {
+    skipSeparator(&program->current_symbol);
     int tmp = 1;
 
-    if(*String == '-')
+    if(*program->current_symbol == '-')
     {
-        ++String;
+        ++program->current_symbol;
         tmp = -1;
     }
-    if(isdigit(*String))
+    if(isdigit(*program->current_symbol))
     {
         int val = 0;
-        char* sOld = String;
+        char* sOld = program->current_symbol;
 
-        while((*String >= '0') && (*String <= '9'))
+        while((*program->current_symbol >= '0') && (*program->current_symbol <= '9'))
         {
-            val = (val * 10) + (*String - '0');
-            ++String;
+            val = (val * 10) + (*program->current_symbol - '0');
+            ++program->current_symbol;
         }
         val *= tmp;
         CHECK(s > sOld, NULL);
@@ -203,8 +205,8 @@ node_t* getN()
     }
     else
     {
-        const char* elem = String;
-        ++String;
+        const char* elem = program->current_symbol;
+        ++program->current_symbol;
 
         if(tmp == -1)
         {
@@ -216,14 +218,17 @@ node_t* getN()
 
 //-------------------------------------------------------------------
 
-node_t* getE()
+node_t* getE(program_t* program)
 {
+    skipSeparator(&program->current_symbol);
     node_t* val = getT();
 
-    while((*String == '+') || (*String == '-'))
+    skipSeparator(&program->current_symbol);
+    while((*program->current_symbol == '+') || (*program->current_symbol == '-'))
     {
-        char op = *String;
-        ++String;
+        char op = *program->current_symbol;
+        ++program->current_symbol;
+        skipSeparator(&program->current_symbol);
 
         node_t* val_2 = getT();
         if(op == '+')
@@ -241,14 +246,17 @@ node_t* getE()
 
 //-------------------------------------------------------------------
 
-node_t* getT()
+node_t* getT(program_t* program)
 {
+    skipSeparator(&program->current_symbol);
     node_t* val = getL();
 
-    while((*String == '*') || (*String == '/'))
+    skipSeparator(&program->current_symbol);
+    while((*program->current_symbol == '*') || (*program->current_symbol == '/'))
     {
-        char op = *String;
-        ++String;
+        char op = *program->current_symbol;
+        ++program->current_symbol;
+        skipSeparator(&program->current_symbol);
 
         node_t* val_2 = getL();
         if(op == '*')
@@ -266,15 +274,20 @@ node_t* getT()
 
 //-------------------------------------------------------------------
 
-node_t* getP()
+node_t* getP(program_t* program)
 {
+    skipSeparator(&program->current_symbol);
     node_t* val = 0;
-    if(*String == '(')
+    
+    if(*program->current_symbol == '(')
     {
-        ++String;
+        ++program->current_symbol;
+        skipSeparator(&program->current_symbol);
         val = getE();
-        CHECK(*String == ')', NULL);
-        ++String;
+        skipSeparator(&program->current_symbol);
+
+        CHECK(*program->current_symbol == ')', NULL);
+        ++program->current_symbol;
 
         return Bracket(val);
     }
@@ -288,34 +301,38 @@ node_t* getP()
 
 //-------------------------------------------------------------------
 
-node_t* getL()
+node_t* getL(program_t* program)
 {
-    if((*String == 'c') && (*(String + 1) == 'o') && (*(String + 2) == 's'))
+    skipSeparator(&program->current_symbol);
+    if(strncmp(program->current_symbol, "cos", 3) == 0)
     {
-        Strings += 3;
+        program->current_symbol += 3;
         return Cos(getP());
     }
-    if((*String == 's') && (*(String + 1) == 'i') && (*(String + 2) == 'n'))
+    if(strncmp(program->current_symbol, "sin", 3) == 0)
     {
-        String += 3;
+        program->current_symbol += 3;
         return Sin(getP());
     }
-    if((*String == 'e') && (*(String + 1) == 'x') && (*(String + 2) == 'p'))
+    if(strncmp(program->current_symbol, "exp", 3) == 0)
     {
-        String += 3;
+        program->current_symbol += 3;
         return Exp(getP());        
     }
-    if((*String == 'l') && (*(String + 1) == 'n'))
+    if(strncmp(program->current_symbol, "ln", 2) == 0)
     {
-        String += 2;
+        program->current_symbol += 2;
         return Ln(getP());        
     }
 
     node_t* val = getP();
-    if(*String == '^')
+    skipSeparator(&program->current_symbol);
+    if(*program->current_symbol == '^')
     {
-        ++String;
+        ++program->current_symbol;
+        skipSeparator(&program->current_symbol);
         node_t* power = getP();
+        skipSeparator(&program->current_symbol);
         val = Pow(val, power);
     }
     CHECK(*s != '^', NULL);
