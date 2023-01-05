@@ -3,7 +3,7 @@ INCLUDES=include
 SOURCE=source
 
 lang: main.o lang.o
-	gcc -o lang $^ -llogger -lm
+	gcc -o lang $^ -llogger -lonegin -lm
 
 main.o: main.c
 	gcc -g -O0 -I${INCLUDES}/ -c $^

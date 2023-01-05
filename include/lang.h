@@ -14,6 +14,8 @@ enum lang_codes
     LANG_SUCCESS              =  0,
     ERR_LANG_NULL_PTR         =  1,
     ERR_LANG_OUT_PLACE        =  2,
+    ERR_LANG_NO_INPUT         =  3,
+    ERR_LANG_NEGATIVE_COUNT   =  4,
 };
 
 enum
@@ -26,25 +28,35 @@ enum
 //=========================================================================
 
 typedef double elem_t;
-typedef const char* varName_t;
+typedef const char* name_t;
 
 typedef struct variable
 {
     elem_t value;
-    varName_t name;
+    name_t name;
     
 } variable_t;
 
 typedef struct arrayVar
 {
     variable_t* data;
-    size_t free_index;
+    int free_index;
 
 } arrayVar_t;
 
+typedef struct program
+{
+    char* buffer; 
+    char* current_symbol;
+
+} program_t;
+
 //=========================================================================
-variable_t* varCtor(elem_t data, varName_t name);
+variable_t* varCtor(elem_t data, name_t name);
 int varDtor(variable_t* var);
 int arrayVarCtor(arrayVar_t* array);
 int arrayVarDtor(arrayVar_t* array);
-int pushBack(variable_t* var_array, variable_t* var);
+int pushBack(arrayVar_t* array, elem_t data, name_t name);
+int parseArgs(int argc, char* argv[], name_t* name_program);
+int programCtor(FILE* file, program_t* program);
+int programDtor(program_t* program);
