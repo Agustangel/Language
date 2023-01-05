@@ -13,6 +13,7 @@ enum lang_codes
     LANG_ERROR                = -1,
     LANG_SUCCESS              =  0,
     ERR_LANG_NULL_PTR         =  1,
+    ERR_LANG_OUT_PLACE        =  2,
 };
 
 //=========================================================================
@@ -26,3 +27,8 @@ typedef struct variable
     varName_t name;
     
 } variable_t;
+
+//=========================================================================
+variable_t* varCtor(elem_t data, varName_t name);
+int varDtor(variable_t* var);
+int pushBack(variable_t* var_array, variable_t* var);
