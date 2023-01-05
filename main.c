@@ -10,6 +10,9 @@ int main(int argc, char** argv)
     logger_init(1, "stack.log");
     logger_set_level(INFO);
 
+    tree_t tree;
+    treeCtor(&tree);
+
     arrayVar_t array[MAX_SIZE];
     arrayVarCtor(array);
 
@@ -22,10 +25,15 @@ int main(int argc, char** argv)
 
     program_t program;
     programCtor(file, &program);
-    
+
     fclose(file);
 
+    node_t* root = makeAST(&program);
+    tree.root = root;
+
+    programDtor(&program);
     arrayVarDtor(array);
+    
     logger_finalize(file);
 
     return 0;
