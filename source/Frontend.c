@@ -159,17 +159,36 @@ node_t* makeAST(program_t* program)
     CHECK(program != NULL, NULL);
 
     node_t* root = NULL;
-    node_t* val = NULL;
-    while(*program->current_symbol != '\0')
+    if(*program->current_symbol != '\0')
     {
         skipSeparator(&program->current_symbol);
-        val = getS(program);
-        CHECK(val != NULL, NULL);
-        val = createNodeKey(val->data.keyValue, val, NULL);
+        root = getS(program);
+        CHECK(root != NULL, NULL);
+        root = createNodeKey(KEY_MAIN, root, createOp(OP_CONNECT));
+        getNodeS(program, root->right);
     }
     CHECK(*program->current_symbol == '\0', NULL);
     
     return root;
+}
+
+//-------------------------------------------------------------------
+
+void getNodeS(program_t* program, node_t* node)
+{
+    CHECK(program != NULL, ;);
+    CHECK(node    != NULL, ;);
+
+    skipSeparator(&program->current_symbol);
+
+    node_t* val = getS(program);
+    CHECK(val != NULL, ;);
+    node = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
+
+    if(*program->current_symbol != '\0')
+    {
+        getNodeS(program, node->right);
+    }
 }
 
 //-------------------------------------------------------------------
@@ -309,7 +328,7 @@ node_t* getP(program_t* program)
     CHECK(program != NULL, NULL);
 
     skipSeparator(&program->current_symbol);
-    node_t* val;
+    node_t* val = NULL;
     
     if(*program->current_symbol == '(')
     {
@@ -427,7 +446,7 @@ node_t* getWhile(program_t* program)
     CHECK(program != NULL, NULL);
 
     skipSeparator(&program->current_symbol);
-    node_t* val;
+    node_t* val = NULL;
 }
 
 //-------------------------------------------------------------------
