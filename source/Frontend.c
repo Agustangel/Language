@@ -91,15 +91,16 @@ int parseArgs(int argc, char* argv[], name_t* name_program)
     CHECK(argv  !=  NULL, ERR_LANG_NULL_PTR);
     CHECK(argc  > 0, ERR_LANG_NEGATIVE_COUNT);
 
-    if(argc < 2)
-    {
-        printf("Input name of the program\n");
-        return ERR_LANG_NO_INPUT;
-    }
-    if (argc == 2)
-    {
-        *name_program = argv[1];
-    }
+    // if(argc < 2)
+    // {
+    //     printf("Input name of the program\n");
+    //     return ERR_LANG_NO_INPUT;
+    // }
+    // if (argc == 2)
+    // {
+    //     *name_program = argv[1];
+    // }
+    *name_program = "program.txt";
 
     return LANG_SUCCESS;
 }

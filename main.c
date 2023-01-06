@@ -27,8 +27,10 @@ int main(int argc, char** argv)
 
     node_t* root = makeAST(&program);
     tree.root = root;
+    dumpGraphTree(&tree);
 
     programDtor(&program);
+    treeDtor(&tree);
     
     logger_finalize(file);
 

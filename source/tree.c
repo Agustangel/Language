@@ -193,8 +193,6 @@ void treeNodeDtor(node_t* node)
 
 //=========================================================================
 
-//=========================================================================
-
 int dumpGraphTree(tree_t* tree)
 {
     CHECK(tree !=  NULL, ERR_TREE_NULL_PTR);
@@ -233,12 +231,12 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
         break;
 
     case VAR:
-        fprintf(dot_out, "\n\t\t\"%c_%p\"[shape = \"ellipse\", label = \"x\", color=\"#900000\", style=\"filled\", \
-                           fillcolor = \"#D0FDFF\"];\n", *node->data.varValue, node);
+        fprintf(dot_out, "\n\t\t\"%c_%p\"[shape = \"ellipse\", label = \"%c\", color=\"#900000\", style=\"filled\", \
+                           fillcolor = \"#D0FDFF\"];\n", *node->data.varValue, node, *node->data.varValue);
         break;
 
     case OP:
-        switch (node->data.opValue)
+        switch(node->data.opValue)
         {
         case OP_ERROR:
             break;
@@ -298,9 +296,53 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
                                style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
             break; 
 
+        case OP_CONNECT:
+            fprintf(dot_out, "\n\t\t\"con_%p\"[shape = \"ellipse\", label = \"con\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break; 
+
         default:
             break;
         }
+
+        if(node->left != NULL)
+        {
+            fprintfConnection(node, node->left, node->data.opValue, dot_out);
+            dumpGraphNode(node->left, dot_out);
+        }
+        if(node->right != NULL)
+        {
+            fprintfConnection(node, node->right, node->data.opValue, dot_out);
+            dumpGraphNode(node->right, dot_out);
+        }
+        break;
+
+    case KEY:
+        switch(node->data.keyValue)
+        {
+        case KEY_MAIN:
+            fprintf(dot_out, "\n\t\t\"main_%p\"[shape = \"ellipse\", label = \"main\", color=\"#800000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case KEY_IF:
+            fprintf(dot_out, "\n\t\t\"if_%p\"[shape = \"ellipse\", label = \"if\", color=\"#800000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case KEY_WHILE:
+            fprintf(dot_out, "\n\t\t\"while_%p\"[shape = \"ellipse\", label = \"while\", color=\"#800000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case KEY_ASSIGN:
+            fprintf(dot_out, "\n\t\t\":=_%p\"[shape = \"ellipse\", label = \":=\", color=\"#800000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        default:
+            break;      
+        }    
 
         if(node->left != NULL)
         {
@@ -481,6 +523,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\")_%p\"->", node_prev);
             break;
 
+        case OP_CONNECT:
+            fprintf(dot_out, "\t\t\"con_%p\"->", node_prev);
+            break;
+
         default:
             break;
         }
@@ -529,6 +575,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
 
         case OP_CLOSBRT:
             fprintf(dot_out, "\")_%p\";\n", node);
+            break;
+
+        case OP_CONNECT:
+            fprintf(dot_out, "\"con_%p\";\n", node);
             break;
 
         default:
