@@ -2,7 +2,7 @@
 
 #include <math.h>
 #include <stdint.h>
-
+#include "tree.h"
 
 #define DATA_POISON NAN
 #define NAME_POISON NULL
@@ -24,38 +24,6 @@ enum
     START_INDEX =   0,
     MAX_SIZE    = 100,
 };
-
-enum node_type
-{
-    NUM = 1,
-    VAR = 2,
-    OP  = 3
-};
-
-enum node_op
-{
-    OP_ERROR   = -1,
-    OP_ADD     = 1,
-    OP_SUB     = 2,
-    OP_MUL     = 3,
-    OP_DIV     = 4,
-    OP_POW     = 5,
-    OP_SIN     = 6,
-    OP_COS     = 7,
-    OP_EXP     = 8,
-    OP_LN      = 9,
-    OP_OPENBRT = 10,
-    OP_CLOSBRT = 11
-};
-
-enum key_word
-{
-    KEY_IF     = 1,
-    KEY_ELSE   = 2,
-    KEY_WHILE  = 3,
-};
-
-//=========================================================================
 
 typedef double elem_t;
 typedef const char* name_t;
@@ -83,37 +51,6 @@ typedef struct program
 
 } program_t;
 
-//-------------------------------------------------------------------
-
-typedef uint_fast16_t treeStatus_t;
-typedef struct node_t node_t;
-
-typedef struct treeData_t
-{
-    double        dblValue;
-    const char*   varValue;
-    enum node_op  opValue;
-    enum key_word keyValue;
-
-} treeData_t;
-
-struct node_t
-{
-    enum node_type type;
-    treeData_t     data;
-
-    node_t* left;
-    node_t* right;
-
-};
-
-typedef struct tree_t
-{
-    node_t* root;
-    treeStatus_t status;
-
-} tree_t;
-
 //=========================================================================
 variable_t* varCtor(elem_t data, name_t name);
 int varDtor(variable_t* var);
@@ -125,10 +62,13 @@ int programCtor(FILE* file, program_t* program);
 int programDtor(program_t* program);
 size_t skipSeparator(char** string);
 node_t* makeAST(program_t* program);
-node_t* getG();
-node_t* getE();
-node_t* getT();
-node_t* getN();
-node_t* getP();
-node_t* getL();
- 
+node_t* getS(program_t* program);
+node_t* getE(program_t* program);
+node_t* getT(program_t* program);
+node_t* getN(program_t* program);
+node_t* getP(program_t* program);
+node_t* getL(program_t* program);
+node_t* getIf(program_t* program);
+node_t* getWhile(program_t* program);
+node_t* getEx(program_t* program);
+node_t* getAs(program_t* program);

@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include <logger.h>
 #include <onegin.h>
+
 #include "lang.h"
 #include "debug.h"
-
+#include "tree.h"
 
 
 //=========================================================================
@@ -140,9 +143,9 @@ size_t skipSeparator(char** string)
     CHECK(string  !=  NULL, ERR_LANG_NULL_PTR);
 
     size_t count = 0;
-    while(isspace((int)(unsigned char)*string))
+    while(isspace((int)(unsigned char)**string))
     {
-        ++(string);
+        ++(*string);
         ++count;
     }
 
@@ -156,22 +159,43 @@ node_t* makeAST(program_t* program)
     CHECK(program != NULL, NULL);
 
     node_t* root = NULL;
-    if(*program->current_symbol != '\0')
+    node_t* val = NULL;
+    while(*program->current_symbol != '\0')
     {
         skipSeparator(&program->current_symbol);
-        root = getG();
-        CHECK(root != NULL, NULL);
+        val = getS(program);
+        CHECK(val != NULL, NULL);
+        val = createNodeKey(val->data.keyValue, val, NULL);
     }
+    CHECK(*program->current_symbol == '\0', NULL);
     
     return root;
 }
 
 //-------------------------------------------------------------------
-
-node_t* getG(program_t* program)
+node_t* getS(program_t* program)
 {
-    node_t* val = getE();
-    CHECK(*program->current_symbol == '\0', NULL);
+    CHECK(program != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    node_t* val;
+
+    if(strncmp(program->current_symbol, "if", 2) == 0)
+    {
+        val = getIf(program);
+    }
+    if(strncmp(program->current_symbol, "while", 5) == 0)
+    {
+        val = getWhile(program);        
+    }
+    if(strncmp(program->current_symbol, "exit", 4) == 0)
+    {
+        val = getEx(program);
+    }
+    if(strncmp(program->current_symbol, ":=", 2) == 0)
+    {
+        val = getAs(program);
+    }
 
     return val;
 }
@@ -180,6 +204,8 @@ node_t* getG(program_t* program)
 
 node_t* getN(program_t* program)
 {
+    CHECK(program != NULL, NULL);
+
     skipSeparator(&program->current_symbol);
     int tmp = 1;
 
@@ -199,7 +225,7 @@ node_t* getN(program_t* program)
             ++program->current_symbol;
         }
         val *= tmp;
-        CHECK(s > sOld, NULL);
+        CHECK(program->current_symbol > sOld, NULL);
 
         return createNum(val);
     }
@@ -210,7 +236,7 @@ node_t* getN(program_t* program)
 
         if(tmp == -1)
         {
-            return Mul(createVar(elem), createNum(-1));
+            return createNodeOp(OP_MUL, createVar(elem), createNum(-1));
         }
         return createVar(elem);
     }
@@ -220,8 +246,10 @@ node_t* getN(program_t* program)
 
 node_t* getE(program_t* program)
 {
+    CHECK(program != NULL, NULL);
+
     skipSeparator(&program->current_symbol);
-    node_t* val = getT();
+    node_t* val = getT(program);
 
     skipSeparator(&program->current_symbol);
     while((*program->current_symbol == '+') || (*program->current_symbol == '-'))
@@ -230,14 +258,14 @@ node_t* getE(program_t* program)
         ++program->current_symbol;
         skipSeparator(&program->current_symbol);
 
-        node_t* val_2 = getT();
+        node_t* val_2 = getT(program);
         if(op == '+')
         {
-            val = Add(val, val_2);
+            val = createNodeOp(OP_ADD, val, val_2);
         }
         else
         {
-            val = Sub(val, val_2);
+            val = createNodeOp(OP_SUB, val, val_2);
         }
     }
 
@@ -248,8 +276,10 @@ node_t* getE(program_t* program)
 
 node_t* getT(program_t* program)
 {
+    CHECK(program != NULL, NULL);
+
     skipSeparator(&program->current_symbol);
-    node_t* val = getL();
+    node_t* val = getL(program);
 
     skipSeparator(&program->current_symbol);
     while((*program->current_symbol == '*') || (*program->current_symbol == '/'))
@@ -258,14 +288,14 @@ node_t* getT(program_t* program)
         ++program->current_symbol;
         skipSeparator(&program->current_symbol);
 
-        node_t* val_2 = getL();
+        node_t* val_2 = getL(program);
         if(op == '*')
         {
-            val = Mul(val, val_2);
+            val = createNodeOp(OP_MUL, val, val_2);
         }
         else
         {
-            val = Div(val, val_2);
+            val = createNodeOp(OP_DIV, val, val_2);
         }
     }
 
@@ -276,24 +306,26 @@ node_t* getT(program_t* program)
 
 node_t* getP(program_t* program)
 {
+    CHECK(program != NULL, NULL);
+
     skipSeparator(&program->current_symbol);
-    node_t* val = 0;
+    node_t* val;
     
     if(*program->current_symbol == '(')
     {
         ++program->current_symbol;
         skipSeparator(&program->current_symbol);
-        val = getE();
+        val = getE(program);
         skipSeparator(&program->current_symbol);
 
         CHECK(*program->current_symbol == ')', NULL);
         ++program->current_symbol;
 
-        return Bracket(val);
+        return createNodeOp(OP_OPENBRT, val, createOp(OP_CLOSBRT));
     }
     else
     {
-        val = getN();
+        val = getN(program);
     }
 
     return val;
@@ -303,39 +335,117 @@ node_t* getP(program_t* program)
 
 node_t* getL(program_t* program)
 {
+    CHECK(program != NULL, NULL);
+    
     skipSeparator(&program->current_symbol);
     if(strncmp(program->current_symbol, "cos", 3) == 0)
     {
         program->current_symbol += 3;
-        return Cos(getP());
+        return createNodeOp(OP_COS, NULL, getP(program));
     }
     if(strncmp(program->current_symbol, "sin", 3) == 0)
     {
         program->current_symbol += 3;
-        return Sin(getP());
+        return createNodeOp(OP_SIN, NULL, getP(program));
     }
     if(strncmp(program->current_symbol, "exp", 3) == 0)
     {
         program->current_symbol += 3;
-        return Exp(getP());        
+        return createNodeOp(OP_EXP, NULL, getP(program));        
     }
     if(strncmp(program->current_symbol, "ln", 2) == 0)
     {
         program->current_symbol += 2;
-        return Ln(getP());        
+        return createNodeOp(OP_LN, NULL, getP(program));        
     }
 
-    node_t* val = getP();
+    node_t* val = getP(program);
     skipSeparator(&program->current_symbol);
     if(*program->current_symbol == '^')
     {
         ++program->current_symbol;
         skipSeparator(&program->current_symbol);
-        node_t* power = getP();
+        node_t* power = getP(program);
         skipSeparator(&program->current_symbol);
-        val = Pow(val, power);
+        val = createNodeOp(OP_POW, val, power);
     }
-    CHECK(*s != '^', NULL);
+    CHECK(*program->current_symbol != '^', NULL);
 
     return val;
+}
+
+//-------------------------------------------------------------------
+
+node_t* getIf(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    CHECK(*program->current_symbol == '(', NULL);
+    skipSeparator(&program->current_symbol);
+
+    node_t* val_1 = getP(program);
+    skipSeparator(&program->current_symbol);
+    if((*program->current_symbol == '>') || (*program->current_symbol == '<') || (*program->current_symbol == '='))
+    {
+        char op = *program->current_symbol;
+        ++program->current_symbol;
+        skipSeparator(&program->current_symbol);
+
+        node_t* val_2 = getP(program);
+        if(op == '>')
+        {
+            val_1 = createNodeOp(OP_MORE, val_1, val_2);
+        }
+        else if(op == '<')
+        {
+            val_1 = createNodeOp(OP_LESS, val_1, val_2);
+        }
+        else
+        {
+            val_1 = createNodeOp(OP_EQUAL, val_1, val_2);
+        }
+    }
+    CHECK(*program->current_symbol == ')', NULL);
+    skipSeparator(&program->current_symbol);
+
+    CHECK(*program->current_symbol == '[', NULL);
+    skipSeparator(&program->current_symbol);
+    node_t* val_3 = getP(program);
+    skipSeparator(&program->current_symbol);
+    CHECK(*program->current_symbol == ']', NULL);
+
+    val_1 = createNodeKey(KEY_IF, val_1, val_3);
+
+    return val_1;
+}
+
+//-------------------------------------------------------------------
+
+node_t* getWhile(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    node_t* val;
+}
+
+//-------------------------------------------------------------------
+
+node_t* getEx(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    node_t* val;
+}
+
+//-------------------------------------------------------------------
+
+node_t* getAs(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    node_t* val;
 }
