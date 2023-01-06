@@ -61,7 +61,7 @@ node_t* copyNode(node_t* prev_node)
     {
     case NUM:
         node->type = NUM;
-        node->data.dblValue = prev_node->data.dblValue;        
+        node->data.intValue = prev_node->data.intValue;        
         break;
     
     case VAR:
@@ -108,7 +108,7 @@ node_t* createNum(int val)
     CHECK(node !=  NULL, NULL);
 
     node->type  = NUM;
-    node->data.dblValue = val;
+    node->data.intValue = val;
 
     node->left  = NULL;
     node->right = NULL;
@@ -192,3 +192,352 @@ void treeNodeDtor(node_t* node)
 }
 
 //=========================================================================
+
+//=========================================================================
+
+int dumpGraphTree(tree_t* tree)
+{
+    CHECK(tree !=  NULL, ERR_TREE_NULL_PTR);
+
+    FILE* file_dot = fopen("graphdump.dot", "wb");
+    CHECK(file_dot !=  NULL, ERR_TREE_BAD_FILE);
+
+    fprintf(file_dot, "digraph {\n");
+    fprintf(file_dot, "\tnode[shape = \"cube\", color = \"#800000\", fontsize = 15, style = \"filled\", fillcolor = \"#88CEFA\"];\n"
+                      "\tedge[color = \"#190970\", fontsize = 11];\n");
+
+    dumpGraphNode(tree->root, file_dot);
+    fprintf(file_dot, "}");
+
+    fclose(file_dot);
+
+    system("dot -Tjpeg -ographdump.jpeg graphdump.dot");
+    system("convert graph_log.jpeg graphdump.jpeg -append graph_array.jpeg");
+    system("gwenview graph_array.jpeg");
+
+    return TREE_SUCCESS;
+}
+
+//=========================================================================
+
+int dumpGraphNode(node_t* node, FILE* dot_out)
+{
+    CHECK(node    !=  NULL, ERR_TREE_NULL_PTR);
+    CHECK(dot_out !=  NULL, ERR_TREE_BAD_FILE);
+
+    switch(node->type)
+    {
+    case NUM:
+        fprintf(dot_out, "\n\t\t\"%d_%p\"[shape = \"ellipse\", label = \"%d\", color=\"#900000\", style=\"filled\", \
+                           fillcolor = \"#D0FDFF\"];\n", node->data.intValue, node, node->data.intValue);
+        break;
+
+    case VAR:
+        fprintf(dot_out, "\n\t\t\"%c_%p\"[shape = \"ellipse\", label = \"x\", color=\"#900000\", style=\"filled\", \
+                           fillcolor = \"#D0FDFF\"];\n", *node->data.varValue, node);
+        break;
+
+    case OP:
+        switch (node->data.opValue)
+        {
+        case OP_ERROR:
+            break;
+
+        case OP_ADD:
+            fprintf(dot_out, "\n\t\t\"+_%p\"[shape = \"ellipse\", label = \"+\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_SUB:
+            fprintf(dot_out, "\n\t\t\"-_%p\"[shape = \"ellipse\", label = \"-\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_MUL:
+            fprintf(dot_out, "\n\t\t\"*_%p\"[shape = \"ellipse\", label = \"*\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_DIV:
+            fprintf(dot_out, "\n\t\t\"/_%p\"[shape = \"ellipse\", label = \"/\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_POW:
+            fprintf(dot_out, "\n\t\t\"^_%p\"[shape = \"ellipse\", label = \"^\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_SIN:
+            fprintf(dot_out, "\n\t\t\"sin_%p\"[shape = \"ellipse\", label = \"sin\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_COS:
+            fprintf(dot_out, "\n\t\t\"cos_%p\"[shape = \"ellipse\", label = \"cos\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_EXP:
+            fprintf(dot_out, "\n\t\t\"exp_%p\"[shape = \"ellipse\", label = \"exp\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_LN:
+            fprintf(dot_out, "\n\t\t\"ln_%p\"[shape = \"ellipse\", label = \"ln\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;            
+
+        case OP_OPENBRT:
+            fprintf(dot_out, "\n\t\t\"(_%p\"[shape = \"ellipse\", label = \"(\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;  
+
+        case OP_CLOSBRT:
+            fprintf(dot_out, "\n\t\t\")_%p\"[shape = \"ellipse\", label = \")\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break; 
+
+        default:
+            break;
+        }
+
+        if(node->left != NULL)
+        {
+            fprintfConnection(node, node->left, node->data.opValue, dot_out);
+            dumpGraphNode(node->left, dot_out);
+        }
+        if(node->right != NULL)
+        {
+            fprintfConnection(node, node->right, node->data.opValue, dot_out);
+            dumpGraphNode(node->right, dot_out);
+        }
+        break;
+
+    default:
+        break; 
+    }
+
+    return TREE_SUCCESS;
+}
+
+//=========================================================================
+
+int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_out)
+{
+    CHECK(node    !=  NULL, ERR_TREE_NULL_PTR);
+    CHECK(dot_out !=  NULL, ERR_TREE_BAD_FILE);
+
+    switch(node->type)
+    {
+    case NUM:
+        switch(operation)
+        {
+        case OP_ADD:
+            fprintf(dot_out, "\t\t\"+_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+        
+        case OP_SUB:
+            fprintf(dot_out, "\t\t\"-_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_MUL:
+            fprintf(dot_out, "\t\t\"*_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_DIV:
+            fprintf(dot_out, "\t\t\"/_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_POW:
+            fprintf(dot_out, "\t\t\"^_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_SIN:
+            fprintf(dot_out, "\t\t\"sin_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_COS:
+            fprintf(dot_out, "\t\t\"cos_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_EXP:
+            fprintf(dot_out, "\t\t\"exp_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_LN:
+            fprintf(dot_out, "\t\t\"ln_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_OPENBRT:
+            fprintf(dot_out, "\t\t\"(_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;  
+
+        case OP_CLOSBRT:
+            fprintf(dot_out, "\t\t\")_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        default:
+            break;
+        }
+        break;
+
+    case VAR:
+        switch(operation)
+        {
+        case OP_ADD:
+            fprintf(dot_out, "\t\t\"+_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);            
+            break;
+        
+        case OP_SUB:
+            fprintf(dot_out, "\t\t\"-_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_MUL:
+            fprintf(dot_out, "\t\t\"*_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node); 
+            break;
+
+        case OP_DIV:
+            fprintf(dot_out, "\t\t\"/_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node); 
+            break;
+
+        case OP_POW:
+            fprintf(dot_out, "\t\t\"^_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node); 
+            break;
+
+        case OP_SIN:
+            fprintf(dot_out, "\t\t\"sin_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_COS:
+            fprintf(dot_out, "\t\t\"cos_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_EXP:
+            fprintf(dot_out, "\t\t\"exp_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_LN:
+            fprintf(dot_out, "\t\t\"ln_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_OPENBRT:
+            fprintf(dot_out, "\t\t\"(_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;  
+
+        case OP_CLOSBRT:
+            fprintf(dot_out, "\t\t\")_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        default:
+            break;
+        }
+        break;
+
+    case OP:
+        switch(operation)
+        {
+        case OP_ADD:
+            fprintf(dot_out, "\t\t\"+_%p\"->", node_prev);
+            break;
+        
+        case OP_SUB:
+            fprintf(dot_out, "\t\t\"-_%p\"->", node_prev);
+            break;
+
+        case OP_MUL:
+            fprintf(dot_out, "\t\t\"*_%p\"->", node_prev);
+            break;
+
+        case OP_DIV:
+            fprintf(dot_out, "\t\t\"/_%p\"->", node_prev);
+            break;
+
+        case OP_POW:
+            fprintf(dot_out, "\t\t\"^_%p\"->", node_prev);
+            break;
+
+        case OP_SIN:
+            fprintf(dot_out, "\t\t\"sin_%p\"->", node_prev);
+            break;
+
+        case OP_COS:
+            fprintf(dot_out, "\t\t\"cos_%p\"->", node_prev);
+            break;
+
+        case OP_EXP:
+            fprintf(dot_out, "\t\t\"exp_%p\"->", node_prev);
+            break;
+
+        case OP_LN:
+            fprintf(dot_out, "\t\t\"ln_%p\"->", node_prev);
+            break;
+
+        case OP_OPENBRT:
+            fprintf(dot_out, "\t\t\"(_%p\"->", node_prev);
+            break;  
+
+        case OP_CLOSBRT:
+            fprintf(dot_out, "\t\t\")_%p\"->", node_prev);
+            break;
+
+        default:
+            break;
+        }
+
+        switch(node->data.opValue)
+        {
+        case OP_ADD:
+            fprintf(dot_out, "\"+_%p\";\n", node);
+            break;
+        
+        case OP_SUB:
+            fprintf(dot_out, "\"-_%p\";\n", node);
+            break;
+
+        case OP_MUL:
+            fprintf(dot_out, "\"*_%p\";\n", node);
+            break;
+
+        case OP_DIV:
+            fprintf(dot_out, "\"/_%p\";\n", node);
+            break;
+
+        case OP_POW:
+            fprintf(dot_out, "\"^_%p\";\n", node);
+            break;
+
+        case OP_SIN:
+            fprintf(dot_out, "\"sin_%p\";\n", node);
+            break;
+
+        case OP_COS:
+            fprintf(dot_out, "\"cos_%p\";\n", node);
+            break;
+
+        case OP_EXP:
+            fprintf(dot_out, "\"exp_%p\";\n", node);
+            break;
+
+        case OP_LN:
+            fprintf(dot_out, "\"ln_%p\";\n", node);
+            break;
+
+        case OP_OPENBRT:
+            fprintf(dot_out, "\"(_%p\";\n", node);
+            break;  
+
+        case OP_CLOSBRT:
+            fprintf(dot_out, "\")_%p\";\n", node);
+            break;
+
+        default:
+            break;
+        }
+
+    default:
+        break;
+    }
+
+    return TREE_SUCCESS;
+}

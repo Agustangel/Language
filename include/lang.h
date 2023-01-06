@@ -71,5 +71,5 @@ node_t* getL(program_t* program);
 node_t* getIf(program_t* program);
 node_t* getWhile(program_t* program);
 node_t* getEx(program_t* program);
-node_t* getAs(program_t* program);
-void getNodeS(program_t* program, node_t* node);
+node_t* getAs(program_t* program, name_t name);
+void getNodeS(program_t* program, node_t* node, char stop_symbol);

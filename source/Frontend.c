@@ -158,23 +158,24 @@ node_t* makeAST(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
+    skipSeparator(&program->current_symbol);
     node_t* root = NULL;
+
     if(*program->current_symbol != '\0')
     {
-        skipSeparator(&program->current_symbol);
         root = getS(program);
         CHECK(root != NULL, NULL);
         root = createNodeKey(KEY_MAIN, root, createOp(OP_CONNECT));
-        getNodeS(program, root->right);
+        getNodeS(program, root->right, '\0');
     }
     CHECK(*program->current_symbol == '\0', NULL);
     
     return root;
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
-void getNodeS(program_t* program, node_t* node)
+void getNodeS(program_t* program, node_t* node, char stop_symbol)
 {
     CHECK(program != NULL, ;);
     CHECK(node    != NULL, ;);
@@ -185,41 +186,55 @@ void getNodeS(program_t* program, node_t* node)
     CHECK(val != NULL, ;);
     node = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
 
-    if(*program->current_symbol != '\0')
+    if(*program->current_symbol != stop_symbol)
     {
-        getNodeS(program, node->right);
+        getNodeS(program, node->right, stop_symbol);
     }
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
+
 node_t* getS(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
     skipSeparator(&program->current_symbol);
-    node_t* val;
+    node_t* val = NULL;
 
     if(strncmp(program->current_symbol, "if", 2) == 0)
     {
+        program->current_symbol += 2;
         val = getIf(program);
+
+        return val;
     }
     if(strncmp(program->current_symbol, "while", 5) == 0)
     {
-        val = getWhile(program);        
+        program->current_symbol += 5;
+        val = getWhile(program);
+
+        return val;        
     }
     if(strncmp(program->current_symbol, "exit", 4) == 0)
     {
         val = getEx(program);
+
+        return val;
     }
+
+    val = getN(program);
+    skipSeparator(&program->current_symbol);
     if(strncmp(program->current_symbol, ":=", 2) == 0)
     {
-        val = getAs(program);
-    }
+        val = getAs(program, val->data.varValue);
 
-    return val;
+        return val;
+    }
+    
+    return NULL; 
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getN(program_t* program)
 {
@@ -261,7 +276,7 @@ node_t* getN(program_t* program)
     }
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getE(program_t* program)
 {
@@ -275,7 +290,6 @@ node_t* getE(program_t* program)
     {
         char op = *program->current_symbol;
         ++program->current_symbol;
-        skipSeparator(&program->current_symbol);
 
         node_t* val_2 = getT(program);
         if(op == '+')
@@ -291,7 +305,7 @@ node_t* getE(program_t* program)
     return val;
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getT(program_t* program)
 {
@@ -321,19 +335,18 @@ node_t* getT(program_t* program)
     return val;    
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getP(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
-    skipSeparator(&program->current_symbol);
     node_t* val = NULL;
-    
+
+    skipSeparator(&program->current_symbol);
     if(*program->current_symbol == '(')
     {
         ++program->current_symbol;
-        skipSeparator(&program->current_symbol);
         val = getE(program);
         skipSeparator(&program->current_symbol);
 
@@ -350,7 +363,7 @@ node_t* getP(program_t* program)
     return val;
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getL(program_t* program)
 {
@@ -383,25 +396,26 @@ node_t* getL(program_t* program)
     if(*program->current_symbol == '^')
     {
         ++program->current_symbol;
-        skipSeparator(&program->current_symbol);
         node_t* power = getP(program);
         skipSeparator(&program->current_symbol);
         val = createNodeOp(OP_POW, val, power);
     }
     CHECK(*program->current_symbol != '^', NULL);
-
+    
     return val;
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getIf(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
+    node_t* val = NULL;
+
     skipSeparator(&program->current_symbol);
     CHECK(*program->current_symbol == '(', NULL);
-    skipSeparator(&program->current_symbol);
+    ++program->current_symbol;
 
     node_t* val_1 = getP(program);
     skipSeparator(&program->current_symbol);
@@ -409,7 +423,6 @@ node_t* getIf(program_t* program)
     {
         char op = *program->current_symbol;
         ++program->current_symbol;
-        skipSeparator(&program->current_symbol);
 
         node_t* val_2 = getP(program);
         if(op == '>')
@@ -426,45 +439,91 @@ node_t* getIf(program_t* program)
         }
     }
     CHECK(*program->current_symbol == ')', NULL);
+    ++program->current_symbol;
     skipSeparator(&program->current_symbol);
 
     CHECK(*program->current_symbol == '[', NULL);
+    ++program->current_symbol;
     skipSeparator(&program->current_symbol);
-    node_t* val_3 = getP(program);
-    skipSeparator(&program->current_symbol);
+    
+    while(*program->current_symbol != ']')
+    {
+        val = getS(program);
+        CHECK(val != NULL, NULL);
+        val = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
+        getNodeS(program, val->right, ']');
+    }
     CHECK(*program->current_symbol == ']', NULL);
+    ++program->current_symbol;
 
-    val_1 = createNodeKey(KEY_IF, val_1, val_3);
+    val_1 = createNodeKey(KEY_IF, val_1, val);
 
     return val_1;
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getWhile(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
-    skipSeparator(&program->current_symbol);
     node_t* val = NULL;
+
+    skipSeparator(&program->current_symbol);
+    CHECK(*program->current_symbol == '(', NULL);
+    ++program->current_symbol;
+
+    node_t* val_1 = getS(program);
+    skipSeparator(&program->current_symbol);
+    CHECK(*program->current_symbol == ')', NULL);
+    ++program->current_symbol;
+    skipSeparator(&program->current_symbol);
+
+    CHECK(*program->current_symbol == '[', NULL);
+    ++program->current_symbol;
+    skipSeparator(&program->current_symbol);
+    
+    while(*program->current_symbol != ']')
+    {
+        val = getS(program);
+        CHECK(val != NULL, NULL);
+        val = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
+        getNodeS(program, val->right, ']');
+    }
+    CHECK(*program->current_symbol == ']', NULL);
+    ++program->current_symbol;
+
+    val_1 = createNodeKey(KEY_WHILE, val_1, val);
+
+    return val_1;
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
 node_t* getEx(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
+    node_t* val = NULL;
+
     skipSeparator(&program->current_symbol);
-    node_t* val;
 }
 
-//-------------------------------------------------------------------
+//=========================================================================
 
-node_t* getAs(program_t* program)
+node_t* getAs(program_t* program, name_t name)
 {
     CHECK(program != NULL, NULL);
 
-    skipSeparator(&program->current_symbol);
-    node_t* val;
+    node_t* val = NULL;
+    name_t var_name = name;
+
+    program->current_symbol += 2;
+    node_t* var_value = getE(program);
+
+    val = createNodeKey(KEY_ASSIGN, createVar(var_name), var_value);
+
+    return val;
 }
+
+//=========================================================================

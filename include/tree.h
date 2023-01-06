@@ -62,7 +62,7 @@ typedef struct node_t node_t;
 
 typedef struct treeData_t
 {
-    double        dblValue;
+    int           intValue;
     const char*   varValue;
     enum node_op  opValue;
     enum key_word keyValue;

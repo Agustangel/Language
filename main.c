@@ -2,37 +2,33 @@
 #include <logger.h>
 #include <onegin.h>
 #include "lang.h"
-
+#include "debug.h"
 
 
 int main(int argc, char** argv)
 {
-    logger_init(1, "stack.log");
+    logger_init(1, "lang.log");
     logger_set_level(INFO);
 
     tree_t tree;
     treeCtor(&tree);
 
-    arrayVar_t array[MAX_SIZE];
-    arrayVarCtor(array);
-
     name_t name_program = NAME_POISON;
     int ret = parseArgs(argc, argv, &name_program);
     CHECK(ret == LANG_SUCCESS, LANG_ERROR);
 
-    FILE* file = fopen(name_program, "rb");
-    CHECK(file != ERR_LANG_NULL_PTR, LANG_ERROR);
+    FILE* text = fopen(name_program, "rb");
+    CHECK(text != NULL, LANG_ERROR);
 
     program_t program;
-    programCtor(file, &program);
+    programCtor(text, &program);
 
-    fclose(file);
+    fclose(text);
 
     node_t* root = makeAST(&program);
     tree.root = root;
 
     programDtor(&program);
-    arrayVarDtor(array);
     
     logger_finalize(file);
 
