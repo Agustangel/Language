@@ -44,15 +44,17 @@ enum node_op
     OP_EQUAL   =  13,
     OP_MORE    =  14,
     OP_LESS    =  15,
+    OP_COMMA   =  16
 };
 
 enum key_word
 {
-    KEY_IF     = 1,
-    KEY_ELSE   = 2,
-    KEY_WHILE  = 3,
-    KEY_ASSIGN = 4,
-    KEY_MAIN   = 5
+    KEY_IF     = 20,
+    KEY_ELSE   = 21,
+    KEY_WHILE  = 22,
+    KEY_ASSIGN = 23,
+    KEY_MAIN   = 24,
+    KEY_FUNC   = 25
 };
 
 //=========================================================================

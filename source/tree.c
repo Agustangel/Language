@@ -301,6 +301,21 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
                                style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
             break; 
 
+        case OP_EQUAL:
+            fprintf(dot_out, "\n\t\t\"=_%p\"[shape = \"ellipse\", label = \"=\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;  
+
+        case OP_MORE:
+            fprintf(dot_out, "\n\t\t\">_%p\"[shape = \"ellipse\", label = \">\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break; 
+
+        case OP_LESS:
+            fprintf(dot_out, "\n\t\t\"<_%p\"[shape = \"ellipse\", label = \"<\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
         default:
             break;
         }
@@ -346,12 +361,12 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
 
         if(node->left != NULL)
         {
-            fprintfConnection(node, node->left, node->data.opValue, dot_out);
+            fprintfConnection(node, node->left, node->data.keyValue, dot_out);
             dumpGraphNode(node->left, dot_out);
         }
         if(node->right != NULL)
         {
-            fprintfConnection(node, node->right, node->data.opValue, dot_out);
+            fprintfConnection(node, node->right, node->data.keyValue, dot_out);
             dumpGraphNode(node->right, dot_out);
         }
         break;
@@ -419,6 +434,22 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\")_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
             break;
 
+        case KEY_ASSIGN:
+            fprintf(dot_out, "\t\t\":=_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_EQUAL:
+            fprintf(dot_out, "\t\t\"=_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_MORE:
+            fprintf(dot_out, "\t\t\">_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case OP_LESS:
+            fprintf(dot_out, "\t\t\"<_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
         default:
             break;
         }
@@ -469,6 +500,22 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
 
         case OP_CLOSBRT:
             fprintf(dot_out, "\t\t\")_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case KEY_ASSIGN:
+            fprintf(dot_out, "\t\t\":=_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_EQUAL:
+            fprintf(dot_out, "\t\t\"=_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_MORE:
+            fprintf(dot_out, "\t\t\">_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_LESS:
+            fprintf(dot_out, "\t\t\"<_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
             break;
 
         default:
@@ -527,6 +574,34 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"con_%p\"->", node_prev);
             break;
 
+        case OP_EQUAL:
+            fprintf(dot_out, "\t\t\"=_%p\"->", node_prev);
+            break;
+
+        case OP_MORE:
+            fprintf(dot_out, "\t\t\">_%p\"->", node_prev);
+            break;
+
+        case OP_LESS:
+            fprintf(dot_out, "\t\t\"<_%p\"->", node_prev);
+            break;
+
+        case KEY_MAIN:
+            fprintf(dot_out, "\t\t\"main_%p\"->", node_prev);
+            break;
+
+        case KEY_ASSIGN:
+            fprintf(dot_out, "\t\t\":=_%p\"->", node_prev);
+            break;
+
+        case KEY_IF:
+            fprintf(dot_out, "\t\t\"if_%p\"->", node_prev);
+            break;
+
+        case KEY_WHILE:
+            fprintf(dot_out, "\t\t\"while_%p\"->", node_prev);
+            break;
+
         default:
             break;
         }
@@ -577,6 +652,18 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\")_%p\";\n", node);
             break;
 
+        case OP_EQUAL:
+            fprintf(dot_out, "\"=_%p\";\n", node);
+            break;
+
+        case OP_MORE:
+            fprintf(dot_out, "\">_%p\";\n", node);
+            break;
+
+        case OP_LESS:
+            fprintf(dot_out, "\"<_%p\";\n", node);
+            break;
+
         case OP_CONNECT:
             fprintf(dot_out, "\"con_%p\";\n", node);
             break;
@@ -584,6 +671,57 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         default:
             break;
         }
+        break;
+
+    case KEY:
+        switch(operation)
+        {
+        case KEY_MAIN:
+            fprintf(dot_out, "\t\t\"main_%p\"->", node_prev);
+            break;
+
+        case KEY_WHILE:
+            fprintf(dot_out, "\t\t\"while_%p\"->", node_prev);
+            break;
+
+        case KEY_IF:
+            fprintf(dot_out, "\t\t\"if_%p\"->", node_prev);
+            break;
+
+        case OP_CONNECT:
+            fprintf(dot_out, "\t\t\"con_%p\"->", node_prev);
+            break;
+
+        default:
+            break;
+        }
+
+        switch(node->data.opValue)
+        {
+        case OP_CONNECT:
+            fprintf(dot_out, "\"con_%p\";\n", node);
+            break;
+
+        default:
+            break;        
+        }  
+        switch(node->data.keyValue)
+        {
+        case KEY_WHILE:
+            fprintf(dot_out, "\"while_%p\";\n", node);
+            break;
+
+        case KEY_IF:
+            fprintf(dot_out, "\"if_%p\";\n", node);
+            break;
+
+        case KEY_ASSIGN:
+            fprintf(dot_out, "\":=_%p\";\n", node);
+            break;
+
+        default:
+            break;       
+        }   
 
     default:
         break;

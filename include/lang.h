@@ -72,4 +72,7 @@ node_t* getIf(program_t* program);
 node_t* getWhile(program_t* program);
 node_t* getEx(program_t* program);
 node_t* getAs(program_t* program, name_t name);
-void getNodeS(program_t* program, node_t* node, char stop_symbol);
+void getNodeS(program_t* program, node_t** node, char stop_symbol);
+node_t* getF(program_t* program);
+node_t* getParam(program_t* program);
+void getNodeParam(program_t* program, node_t** node);

@@ -167,7 +167,7 @@ node_t* makeAST(program_t* program)
         root = getS(program);
         CHECK(root != NULL, NULL);
         root = createNodeKey(KEY_MAIN, root, createOp(OP_CONNECT));
-        getNodeS(program, root->right, '\0');
+        getNodeS(program, &root->right, '\0');
     }
     CHECK(*program->current_symbol == '\0', NULL);
     
@@ -176,20 +176,24 @@ node_t* makeAST(program_t* program)
 
 //=========================================================================
 
-void getNodeS(program_t* program, node_t* node, char stop_symbol)
+void getNodeS(program_t* program, node_t** node, char stop_symbol)
 {
     CHECK(program != NULL, ;);
     CHECK(node    != NULL, ;);
 
     skipSeparator(&program->current_symbol);
+    if(*program->current_symbol == stop_symbol)
+    {
+        return;
+    }
 
     node_t* val = getS(program);
     CHECK(val != NULL, ;);
-    node = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
+    *node = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
 
     if(*program->current_symbol != stop_symbol)
     {
-        getNodeS(program, node->right, stop_symbol);
+        getNodeS(program, &(*node)->right, stop_symbol);
     }
 }
 
@@ -447,12 +451,12 @@ node_t* getIf(program_t* program)
     ++program->current_symbol;
     skipSeparator(&program->current_symbol);
     
-    while(*program->current_symbol != ']')
+    if(*program->current_symbol != ']')
     {
         val = getS(program);
         CHECK(val != NULL, NULL);
         val = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
-        getNodeS(program, val->right, ']');
+        getNodeS(program, &val->right, ']');
     }
     CHECK(*program->current_symbol == ']', NULL);
     ++program->current_symbol;
@@ -474,8 +478,27 @@ node_t* getWhile(program_t* program)
     CHECK(*program->current_symbol == '(', NULL);
     ++program->current_symbol;
 
-    node_t* val_1 = getS(program);
+    node_t* val_1 = getP(program);
     skipSeparator(&program->current_symbol);
+    if((*program->current_symbol == '>') || (*program->current_symbol == '<') || (*program->current_symbol == '='))
+    {
+        char op = *program->current_symbol;
+        ++program->current_symbol;
+
+        node_t* val_2 = getP(program);
+        if(op == '>')
+        {
+            val_1 = createNodeOp(OP_MORE, val_1, val_2);
+        }
+        else if(op == '<')
+        {
+            val_1 = createNodeOp(OP_LESS, val_1, val_2);
+        }
+        else
+        {
+            val_1 = createNodeOp(OP_EQUAL, val_1, val_2);
+        }
+    }
     CHECK(*program->current_symbol == ')', NULL);
     ++program->current_symbol;
     skipSeparator(&program->current_symbol);
@@ -484,12 +507,12 @@ node_t* getWhile(program_t* program)
     ++program->current_symbol;
     skipSeparator(&program->current_symbol);
     
-    while(*program->current_symbol != ']')
+    if(*program->current_symbol != ']')
     {
         val = getS(program);
         CHECK(val != NULL, NULL);
         val = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
-        getNodeS(program, val->right, ']');
+        getNodeS(program, &val->right, ']');
     }
     CHECK(*program->current_symbol == ']', NULL);
     ++program->current_symbol;
@@ -506,7 +529,6 @@ node_t* getEx(program_t* program)
     CHECK(program != NULL, NULL);
 
     node_t* val = NULL;
-
     skipSeparator(&program->current_symbol);
 }
 
@@ -528,3 +550,79 @@ node_t* getAs(program_t* program, name_t name)
 }
 
 //=========================================================================
+
+node_t* getF(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    node_t* func = createNodeKey(KEY_FUNC, getParam(program), createOp(OP_CONNECT));
+    node_t* body = NULL;
+    skipSeparator(&program->current_symbol);
+
+    CHECK(*program->current_symbol == '[', NULL);
+    ++program->current_symbol;
+    skipSeparator(&program->current_symbol);
+    
+    if(*program->current_symbol != ']')
+    {
+        body = getS(program);
+        CHECK(body != NULL, NULL);
+        body = createNodeOp(OP_CONNECT, body, createOp(OP_CONNECT));
+        getNodeS(program, &body->right, ']');
+    }
+    CHECK(*program->current_symbol == ']', NULL);
+    ++program->current_symbol;
+
+    treeNodeDtor(func->right);
+    func->right = body;
+
+    return func;
+}
+
+//=========================================================================
+
+node_t* getParam(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    CHECK(*program->current_symbol == '(', NULL);
+    ++program->current_symbol;
+
+    node_t* val = getN(program);
+    skipSeparator(&program->current_symbol);
+
+    if(*program->current_symbol == ',')
+    {
+        ++program->current_symbol;
+        val = createNodeOp(OP_COMMA, val, createOp(OP_COMMA));
+        getNodeParam(program, &val->right);
+    }
+
+    CHECK(*program->current_symbol == ')', NULL);
+    ++program->current_symbol;
+
+    return val;
+}
+
+//=========================================================================
+
+void getNodeParam(program_t* program, node_t** node)
+{
+    CHECK(program != NULL, ;);
+    CHECK(node    != NULL, ;);
+
+    treeNodeDtor(*node);
+    (*node) = NULL;
+
+    node_t* val = getN(program);
+    CHECK(val != NULL, ;);
+    *node = val;
+
+    skipSeparator(&program->current_symbol);
+    if(*program->current_symbol == ',')
+    {
+        ++program->current_symbol;
+        *node = createNodeOp(OP_COMMA, val, createOp(OP_COMMA));
+        getNodeParam(program, &(*node)->right);
+    }
+}
