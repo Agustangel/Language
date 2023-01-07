@@ -44,7 +44,7 @@ enum node_op
     OP_EQUAL   =  13,
     OP_MORE    =  14,
     OP_LESS    =  15,
-    OP_COMMA   =  16
+    OP_COMMA   =  16,
 };
 
 enum key_word
@@ -54,18 +54,20 @@ enum key_word
     KEY_WHILE  = 22,
     KEY_ASSIGN = 23,
     KEY_MAIN   = 24,
-    KEY_FUNC   = 25
+    KEY_FUNC   = 25,
+    KEY_RET    = 26
 };
 
 //=========================================================================
 
 typedef uint_fast16_t treeStatus_t;
 typedef struct node_t node_t;
+typedef char* name_t;
 
 typedef struct treeData_t
 {
     int           intValue;
-    const char*   varValue;
+    char*   varValue;
     enum node_op  opValue;
     enum key_word keyValue;
 
@@ -75,6 +77,7 @@ typedef struct node_t
 {
     enum node_type type;
     treeData_t     data;
+    name_t  name;
 
     node_t* left;
     node_t* right;
@@ -95,7 +98,7 @@ node_t* createNodeOp(int val, node_t* left, node_t* right);
 node_t* createNodeKey(int val, node_t* left, node_t* right);
 node_t* copyNode(node_t* prev_node);
 node_t* createNum(int val);
-node_t* createVar(const char* val);
+node_t* createVar(char* val);
 node_t* createOp(int opValue);
 int treeDtor(tree_t* tree);
 void treeNodeDtor(node_t* node);

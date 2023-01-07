@@ -22,6 +22,9 @@ int treeCtor(tree_t* tree)
 
 node_t* createNodeOp(int val, node_t* left, node_t* right)
 {
+    CHECK(left  != NULL, NULL);
+    CHECK(right != NULL, NULL);
+
     node_t* node = (node_t*) calloc(1, sizeof(node_t));
     CHECK(node !=  NULL, NULL);
 
@@ -31,6 +34,9 @@ node_t* createNodeOp(int val, node_t* left, node_t* right)
     node->left  = left;
     node->right = right;
 
+    node->name = (name_t) calloc(1, sizeof(name_t));
+    CHECK(node->name !=  NULL, NULL);
+
     return node; 
 }
 
@@ -38,6 +44,9 @@ node_t* createNodeOp(int val, node_t* left, node_t* right)
 
 node_t* createNodeKey(int val, node_t* left, node_t* right)
 {
+    CHECK(left  != NULL, NULL);
+    CHECK(right != NULL, NULL);
+    
     node_t* node = (node_t*) calloc(1, sizeof(node_t));
     CHECK(node !=  NULL, NULL);
 
@@ -47,6 +56,9 @@ node_t* createNodeKey(int val, node_t* left, node_t* right)
     node->left  = left;
     node->right = right;
 
+    node->name = (name_t) calloc(1, sizeof(name_t));
+    CHECK(node->name !=  NULL, NULL);
+
     return node; 
 }
 
@@ -54,9 +66,12 @@ node_t* createNodeKey(int val, node_t* left, node_t* right)
 
 node_t* copyNode(node_t* prev_node)
 {
+    CHECK(prev_node != NULL, NULL);
+
     node_t* node = (node_t*) calloc(1, sizeof(node_t));
     CHECK(node !=  NULL, NULL);
 
+    node->name = prev_node->name;
     switch(prev_node->type)
     {
     case NUM:
@@ -112,14 +127,19 @@ node_t* createNum(int val)
 
     node->left  = NULL;
     node->right = NULL;
- 
+
+    node->name = (name_t) calloc(1, sizeof(name_t));
+    CHECK(node->name !=  NULL, NULL);
+
     return node;
 }
 
 //=========================================================================
 
-node_t* createVar(const char* val)
+node_t* createVar(char* val)
 {
+    CHECK(val != NULL, NULL);
+
     node_t* node = (node_t*) calloc(1, sizeof(node_t));
     CHECK(node !=  NULL, NULL);
 
@@ -128,7 +148,10 @@ node_t* createVar(const char* val)
 
     node->left  = NULL;
     node->right = NULL;
- 
+
+    node->name = (name_t) calloc(1, sizeof(name_t));
+    CHECK(node->name !=  NULL, NULL);
+
     return node;
 }
 
@@ -144,7 +167,10 @@ node_t* createOp(int opValue)
 
     node->left  = NULL;
     node->right = NULL;
- 
+
+    node->name = (name_t) calloc(1, sizeof(name_t));
+    CHECK(node->name !=  NULL, NULL);
+
     return node;
 }
 
@@ -160,7 +186,10 @@ node_t* createKey(int keyValue)
 
     node->left  = NULL;
     node->right = NULL;
- 
+
+    node->name = (name_t) calloc(1, sizeof(name_t));
+    CHECK(node->name !=  NULL, NULL);
+
     return node;
 }
 
@@ -188,6 +217,7 @@ void treeNodeDtor(node_t* node)
 
     treeNodeDtor(node->left);
     treeNodeDtor(node->right);
+    free(node->name);
     free(node);
 }
 

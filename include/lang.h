@@ -26,7 +26,6 @@ enum
 };
 
 typedef double elem_t;
-typedef const char* name_t;
 
 typedef struct variable
 {
@@ -70,9 +69,10 @@ node_t* getP(program_t* program);
 node_t* getL(program_t* program);
 node_t* getIf(program_t* program);
 node_t* getWhile(program_t* program);
-node_t* getEx(program_t* program);
+node_t* getRet(program_t* program);
 node_t* getAs(program_t* program, name_t name);
 void getNodeS(program_t* program, node_t** node, char stop_symbol);
 node_t* getF(program_t* program);
 node_t* getParam(program_t* program);
 void getNodeParam(program_t* program, node_t** node);
+int getName(program_t* program, char* name);

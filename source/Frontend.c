@@ -181,6 +181,9 @@ void getNodeS(program_t* program, node_t** node, char stop_symbol)
     CHECK(program != NULL, ;);
     CHECK(node    != NULL, ;);
 
+    treeNodeDtor(*node);
+    *node = NULL;
+
     skipSeparator(&program->current_symbol);
     if(*program->current_symbol == stop_symbol)
     {
@@ -194,6 +197,11 @@ void getNodeS(program_t* program, node_t** node, char stop_symbol)
     if(*program->current_symbol != stop_symbol)
     {
         getNodeS(program, &(*node)->right, stop_symbol);
+    }
+    else
+    {
+        treeNodeDtor((*node)->right);
+        (*node)->right = NULL;        
     }
 }
 
@@ -220,9 +228,17 @@ node_t* getS(program_t* program)
 
         return val;        
     }
-    if(strncmp(program->current_symbol, "exit", 4) == 0)
+    if(strncmp(program->current_symbol, "ret", 3) == 0)
     {
-        val = getEx(program);
+        program->current_symbol += 3;
+        val = getRet(program);
+
+        return val;
+    }
+    if(strncmp(program->current_symbol, "func", 4) == 0)
+    {
+        program->current_symbol += 4;
+        val = getF(program);
 
         return val;
     }
@@ -270,7 +286,7 @@ node_t* getN(program_t* program)
     }
     else
     {
-        const char* elem = program->current_symbol;
+        char* elem = program->current_symbol;
         ++program->current_symbol;
 
         if(tmp == -1)
@@ -524,16 +540,6 @@ node_t* getWhile(program_t* program)
 
 //=========================================================================
 
-node_t* getEx(program_t* program)
-{
-    CHECK(program != NULL, NULL);
-
-    node_t* val = NULL;
-    skipSeparator(&program->current_symbol);
-}
-
-//=========================================================================
-
 node_t* getAs(program_t* program, name_t name)
 {
     CHECK(program != NULL, NULL);
@@ -555,9 +561,14 @@ node_t* getF(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
-    node_t* func = createNodeKey(KEY_FUNC, getParam(program), createOp(OP_CONNECT));
-    node_t* body = NULL;
-    skipSeparator(&program->current_symbol);
+    node_t* func  = NULL;
+    node_t* body  = NULL;
+
+    char name[MAX_SIZE];
+    int ret = getName(program, name);
+    CHECK(ret == LANG_SUCCESS, NULL);
+
+    node_t* param = getParam(program);
 
     CHECK(*program->current_symbol == '[', NULL);
     ++program->current_symbol;
@@ -573,10 +584,29 @@ node_t* getF(program_t* program)
     CHECK(*program->current_symbol == ']', NULL);
     ++program->current_symbol;
 
-    treeNodeDtor(func->right);
-    func->right = body;
+    func = createNodeKey(KEY_FUNC, param, body);
+    func->name = name;
 
     return func;
+}
+
+//=========================================================================
+
+int getName(program_t* program, char* name)
+{
+    CHECK(program != NULL, ERR_LANG_NULL_PTR);
+
+    int idx = 0;
+
+    skipSeparator(&program->current_symbol);
+    while(isalpha(*program->current_symbol) && (idx < MAX_SIZE))
+    {
+        name[idx] = *program->current_symbol;
+        ++idx;
+        ++program->current_symbol;
+    }
+
+    return LANG_SUCCESS;
 }
 
 //=========================================================================
@@ -585,6 +615,7 @@ node_t* getParam(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
+    skipSeparator(&program->current_symbol);
     CHECK(*program->current_symbol == '(', NULL);
     ++program->current_symbol;
 
@@ -612,7 +643,6 @@ void getNodeParam(program_t* program, node_t** node)
     CHECK(node    != NULL, ;);
 
     treeNodeDtor(*node);
-    (*node) = NULL;
 
     node_t* val = getN(program);
     CHECK(val != NULL, ;);
@@ -626,3 +656,20 @@ void getNodeParam(program_t* program, node_t** node)
         getNodeParam(program, &(*node)->right);
     }
 }
+
+//=========================================================================
+
+node_t* getRet(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    node_t* ret = getE(program);
+    ret = createNodeKey(KEY_RET, ret, createOp(OP_CONNECT));
+
+    treeNodeDtor(ret->right);
+    ret->right = NULL; 
+
+    return ret;
+}
+
+//=========================================================================
