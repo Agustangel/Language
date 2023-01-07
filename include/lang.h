@@ -16,6 +16,7 @@ enum lang_codes
     ERR_LANG_OUT_PLACE        =  2,
     ERR_LANG_NO_INPUT         =  3,
     ERR_LANG_NEGATIVE_COUNT   =  4,
+    ERR_LANG_BAD_NAME         =  5,
 };
 
 enum
@@ -75,4 +76,5 @@ void getNodeS(program_t* program, node_t** node, char stop_symbol);
 node_t* getF(program_t* program);
 node_t* getParam(program_t* program);
 void getNodeParam(program_t* program, node_t** node);
-int getName(program_t* program, char* name);
+char* getName(program_t* program);
+int getLenName(program_t* program);

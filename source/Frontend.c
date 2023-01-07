@@ -564,12 +564,10 @@ node_t* getF(program_t* program)
     node_t* func  = NULL;
     node_t* body  = NULL;
 
-    char name[MAX_SIZE];
-    int ret = getName(program, name);
-    CHECK(ret == LANG_SUCCESS, NULL);
-
+    char* name = getName(program);
     node_t* param = getParam(program);
-
+    skipSeparator(&program->current_symbol);
+    
     CHECK(*program->current_symbol == '[', NULL);
     ++program->current_symbol;
     skipSeparator(&program->current_symbol);
@@ -592,21 +590,40 @@ node_t* getF(program_t* program)
 
 //=========================================================================
 
-int getName(program_t* program, char* name)
+char* getName(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    int a = 0;
+
+    int len = getLenName(program);
+    CHECK(len > 0, NULL);
+
+    char* name = (char*) calloc(len + 1, sizeof(char));
+    memcpy(name, program->current_symbol, len * sizeof(char)); 
+    name[len] = '\0';
+    program->current_symbol += len;
+
+    return name;
+}
+
+//=========================================================================
+
+int getLenName(program_t* program)
 {
     CHECK(program != NULL, ERR_LANG_NULL_PTR);
 
-    int idx = 0;
-
     skipSeparator(&program->current_symbol);
-    while(isalpha(*program->current_symbol) && (idx < MAX_SIZE))
+
+    int len = 0;
+    char* tmp_ptr = program->current_symbol;
+    while(isalpha(*tmp_ptr))
     {
-        name[idx] = *program->current_symbol;
-        ++idx;
-        ++program->current_symbol;
+        ++len;
+        ++tmp_ptr;
     }
 
-    return LANG_SUCCESS;
+    return len;
 }
 
 //=========================================================================

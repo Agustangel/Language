@@ -30,12 +30,10 @@ node_t* createNodeOp(int val, node_t* left, node_t* right)
 
     node->type  = OP;
     node->data.opValue = val;
+    node->name = NAME_POISON;
 
     node->left  = left;
     node->right = right;
-
-    node->name = (name_t) calloc(1, sizeof(name_t));
-    CHECK(node->name !=  NULL, NULL);
 
     return node; 
 }
@@ -52,12 +50,10 @@ node_t* createNodeKey(int val, node_t* left, node_t* right)
 
     node->type  = KEY;
     node->data.keyValue = val;
+    node->name = NAME_POISON;
 
     node->left  = left;
     node->right = right;
-
-    node->name = (name_t) calloc(1, sizeof(name_t));
-    CHECK(node->name !=  NULL, NULL);
 
     return node; 
 }
@@ -124,12 +120,10 @@ node_t* createNum(int val)
 
     node->type  = NUM;
     node->data.intValue = val;
+    node->name = NAME_POISON;
 
     node->left  = NULL;
     node->right = NULL;
-
-    node->name = (name_t) calloc(1, sizeof(name_t));
-    CHECK(node->name !=  NULL, NULL);
 
     return node;
 }
@@ -145,12 +139,10 @@ node_t* createVar(char* val)
 
     node->type  = VAR;
     node->data.varValue = val;
+    node->name = NAME_POISON;    
 
     node->left  = NULL;
     node->right = NULL;
-
-    node->name = (name_t) calloc(1, sizeof(name_t));
-    CHECK(node->name !=  NULL, NULL);
 
     return node;
 }
@@ -164,12 +156,10 @@ node_t* createOp(int opValue)
 
     node->type  = OP;
     node->data.opValue = opValue;
+    node->name = NAME_POISON;
 
     node->left  = NULL;
     node->right = NULL;
-
-    node->name = (name_t) calloc(1, sizeof(name_t));
-    CHECK(node->name !=  NULL, NULL);
 
     return node;
 }
@@ -183,12 +173,10 @@ node_t* createKey(int keyValue)
 
     node->type  = KEY;
     node->data.keyValue = keyValue;
+    node->name = NAME_POISON;
 
     node->left  = NULL;
     node->right = NULL;
-
-    node->name = (name_t) calloc(1, sizeof(name_t));
-    CHECK(node->name !=  NULL, NULL);
 
     return node;
 }
@@ -217,7 +205,6 @@ void treeNodeDtor(node_t* node)
 
     treeNodeDtor(node->left);
     treeNodeDtor(node->right);
-    free(node->name);
     free(node);
 }
 
@@ -346,6 +333,11 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
                                style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
             break;
 
+        case OP_COMMA:
+            fprintf(dot_out, "\n\t\t\",_%p\"[shape = \"ellipse\", label = \",\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
         default:
             break;
         }
@@ -382,6 +374,16 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
 
         case KEY_ASSIGN:
             fprintf(dot_out, "\n\t\t\":=_%p\"[shape = \"ellipse\", label = \":=\", color=\"#800000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case KEY_FUNC:
+            fprintf(dot_out, "\n\t\t\"%s_%p\"[shape = \"ellipse\", label = \"%s\", color=\"#800000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node->name, node, node->name);
+            break;
+
+        case KEY_RET:
+            fprintf(dot_out, "\n\t\t\"ret_%p\"[shape = \"ellipse\", label = \"ret\", color=\"#800000\", \
                                style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
             break;
 
@@ -480,6 +482,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"<_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
             break;
 
+        case KEY_RET:
+            fprintf(dot_out, "\t\t\"ret_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
         default:
             break;
         }
@@ -546,6 +552,14 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
 
         case OP_LESS:
             fprintf(dot_out, "\t\t\"<_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case OP_COMMA:
+            fprintf(dot_out, "\t\t\",_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
+        case KEY_RET:
+            fprintf(dot_out, "\t\t\"ret_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
             break;
 
         default:
@@ -632,6 +646,18 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"while_%p\"->", node_prev);
             break;
 
+        case KEY_FUNC:
+            fprintf(dot_out, "\t\t\"%s_%p\"->", node_prev->name, node_prev);
+            break;
+
+        case OP_COMMA:
+            fprintf(dot_out, "\t\t\",_%p\"->", node_prev);
+            break;
+
+        case KEY_RET:
+            fprintf(dot_out, "\t\t\"ret_%p\"->", node_prev);
+            break;
+
         default:
             break;
         }
@@ -698,6 +724,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\"con_%p\";\n", node);
             break;
 
+        case OP_COMMA:
+            fprintf(dot_out, "\",_%p\";\n", node);
+            break;
+
         default:
             break;
         }
@@ -720,6 +750,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
 
         case OP_CONNECT:
             fprintf(dot_out, "\t\t\"con_%p\"->", node_prev);
+            break;
+
+        case KEY_FUNC:
+            fprintf(dot_out, "\t\t\"%s_%p\"->", node_prev->name, node_prev);
             break;
 
         default:
@@ -747,6 +781,14 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
 
         case KEY_ASSIGN:
             fprintf(dot_out, "\":=_%p\";\n", node);
+            break;
+
+        case KEY_FUNC:
+            fprintf(dot_out, "\"%s_%p\";\n", node->name, node);
+            break;
+
+        case KEY_RET:
+            fprintf(dot_out, "\t\t\"ret_%p\";\n", node);
             break;
 
         default:
