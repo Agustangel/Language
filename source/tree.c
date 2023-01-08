@@ -562,6 +562,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"ret_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
             break;
 
+        case KEY_FUNC:
+            fprintf(dot_out, "\t\t\"%s_%p\"->\"%c_%p\";\n", node_prev->name, node_prev, *node->data.varValue, node);
+            break;
+
         default:
             break;
         }

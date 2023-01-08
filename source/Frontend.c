@@ -565,6 +565,8 @@ node_t* getF(program_t* program)
     node_t* body  = NULL;
 
     char* name = getName(program);
+    CHECK(name != NULL, NULL);
+
     node_t* param = getParam(program);
     skipSeparator(&program->current_symbol);
     
@@ -582,6 +584,15 @@ node_t* getF(program_t* program)
     CHECK(*program->current_symbol == ']', NULL);
     ++program->current_symbol;
 
+    if(param == NULL)
+    {
+        func = createNodeKey(KEY_FUNC, createOp(OP_COMMA), body);
+        func->name = name;
+        treeNodeDtor(func->left);
+        func->left = NULL;
+
+        return func;
+    }
     func = createNodeKey(KEY_FUNC, param, body);
     func->name = name;
 
@@ -635,6 +646,11 @@ node_t* getParam(program_t* program)
     skipSeparator(&program->current_symbol);
     CHECK(*program->current_symbol == '(', NULL);
     ++program->current_symbol;
+    if(*program->current_symbol == ')')
+    {
+        ++program->current_symbol;
+        return NULL;
+    }
 
     node_t* val = getN(program);
     skipSeparator(&program->current_symbol);

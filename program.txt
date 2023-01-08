@@ -1,4 +1,4 @@
-func foo(a, b)
+func foo()
 [
     a := 5
     if(a > b)
