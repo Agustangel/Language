@@ -2,50 +2,44 @@ digraph {
 	node[shape = "cube", color = "#800000", fontsize = 15, style = "filled", fillcolor = "#88CEFA"];
 	edge[color = "#190970", fontsize = 11];
 
-		"main_0x564b59ea5010"[shape = "ellipse", label = "main", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
-		"main_0x564b59ea5010"->"foo_0x564b59ea4f90";
+		"main_0x561a11250d30"[shape = "ellipse", label = "main", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
+		"main_0x561a11250d30"->"foo_0x561a11250cb0";
 
-		"foo_0x564b59ea4f90"[shape = "ellipse", label = "foo", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
-		"foo_0x564b59ea4f90"->"con_0x564b59ea4bd0";
+		"foo_0x561a11250cb0"[shape = "ellipse", label = "foo", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
+		"foo_0x561a11250cb0"->",_0x561a11250b10";
 
-		"con_0x564b59ea4bd0"[shape = "ellipse", label = "con", color="#900000",                                style="filled", fillcolor = "#D0FDFF"];
-		"con_0x564b59ea4bd0"->":=_0x564b59ea4b50";
+		",_0x561a11250b10"[shape = "ellipse", label = ",", color="#900000",                                style="filled", fillcolor = "#D0FDFF"];
+		",_0x561a11250b10"->"a_0x561a11250a90";
 
-		":=_0x564b59ea4b50"[shape = "ellipse", label = ":=", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
-		":=_0x564b59ea4b50"->"a_0x564b59ea4b10";
+		"a_0x561a11250a90"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
+		",_0x561a11250b10"->"b_0x561a11250b50";
 
-		"a_0x564b59ea4b10"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
-		":=_0x564b59ea4b50"->"5_0x564b59ea4ad0";
+		"b_0x561a11250b50"[shape = "ellipse", label = "b", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
+		"foo_0x561a11250cb0"->":=_0x561a11250c70";
 
-		"5_0x564b59ea4ad0"[shape = "ellipse", label = "5", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
-		"con_0x564b59ea4bd0"->"con_0x564b59ea4e50";
+		":=_0x561a11250c70"[shape = "ellipse", label = ":=", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
+		":=_0x561a11250c70"->"a_0x561a11250c30";
 
-		"con_0x564b59ea4e50"[shape = "ellipse", label = "con", color="#900000",                                style="filled", fillcolor = "#D0FDFF"];
-		"con_0x564b59ea4e50"->"if_0x564b59ea4dd0";
+		"a_0x561a11250c30"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
+		":=_0x561a11250c70"->"b_0x561a11250bf0";
 
-		"if_0x564b59ea4dd0"[shape = "ellipse", label = "if", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
-		"if_0x564b59ea4dd0"->">_0x564b59ea4c90";
+		"b_0x561a11250bf0"[shape = "ellipse", label = "b", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
+		"main_0x561a11250d30"->":=_0x561a11250f90";
 
-		">_0x564b59ea4c90"[shape = "ellipse", label = ">", color="#900000",                                style="filled", fillcolor = "#D0FDFF"];
-		">_0x564b59ea4c90"->"a_0x564b59ea4c10";
+		":=_0x561a11250f90"[shape = "ellipse", label = ":=", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
+		":=_0x561a11250f90"->"a_0x561a11250f50";
 
-		"a_0x564b59ea4c10"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
-		">_0x564b59ea4c90"->"b_0x564b59ea4c50";
+		"a_0x561a11250f50"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
+		":=_0x561a11250f90"->"foo_0x561a11250f10";
 
-		"b_0x564b59ea4c50"[shape = "ellipse", label = "b", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
-		"if_0x564b59ea4dd0"->":=_0x564b59ea4d90";
+		"foo_0x561a11250f10"[shape = "ellipse", label = "foo", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
+		"foo_0x561a11250f10"->",_0x561a11250e50";
 
-		":=_0x564b59ea4d90"[shape = "ellipse", label = ":=", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
-		":=_0x564b59ea4d90"->"a_0x564b59ea4d50";
+		",_0x561a11250e50"[shape = "ellipse", label = ",", color="#900000",                                style="filled", fillcolor = "#D0FDFF"];
+		",_0x561a11250e50"->"a_0x561a11250dd0";
 
-		"a_0x564b59ea4d50"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
-		":=_0x564b59ea4d90"->"b_0x564b59ea4d10";
+		"a_0x561a11250dd0"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
+		",_0x561a11250e50"->"b_0x561a11250e90";
 
-		"b_0x564b59ea4d10"[shape = "ellipse", label = "b", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
-		"con_0x564b59ea4e50"->		"ret_0x564b59ea4f10";
-
-		"ret_0x564b59ea4f10"[shape = "ellipse", label = "ret", color="#800000",                                style="filled", fillcolor = "#D0FDFF"];
-		"ret_0x564b59ea4f10"->"a_0x564b59ea4e90";
-
-		"a_0x564b59ea4e90"[shape = "ellipse", label = "a", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
+		"b_0x561a11250e90"[shape = "ellipse", label = "b", color="#900000", style="filled",                            fillcolor = "#D0FDFF"];
 }

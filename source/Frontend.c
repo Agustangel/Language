@@ -250,7 +250,7 @@ node_t* getS(program_t* program)
         return val;
     }
     
-    return NULL; 
+    return val; 
 }
 
 //=========================================================================
@@ -548,7 +548,12 @@ node_t* getAs(program_t* program, name_t name)
     name_t var_name = name;
 
     program->current_symbol += 2;
-    node_t* var_value = getE(program);
+    node_t* var_value = callFunc(program);
+    if(var_value == NULL)
+    {
+        --program->current_symbol;
+        var_value = getE(program);
+    }
 
     val = createNodeKey(KEY_ASSIGN, createVar(var_name), var_value);
 
@@ -568,23 +573,25 @@ node_t* getF(program_t* program)
     CHECK(name != NULL, NULL);
 
     node_t* param = getParam(program);
+    CHECK(param  != NULL, NULL);
     skipSeparator(&program->current_symbol);
     
     CHECK(*program->current_symbol == '[', NULL);
     ++program->current_symbol;
-    skipSeparator(&program->current_symbol);
-    
+
+    body = getS(program);
+    CHECK(body != NULL, NULL);
+
+    skipSeparator(&program->current_symbol); 
     if(*program->current_symbol != ']')
     {
-        body = getS(program);
-        CHECK(body != NULL, NULL);
         body = createNodeOp(OP_CONNECT, body, createOp(OP_CONNECT));
         getNodeS(program, &body->right, ']');
     }
     CHECK(*program->current_symbol == ']', NULL);
     ++program->current_symbol;
 
-    if(param == NULL)
+    if(param->data.opValue == OP_NOPARAM)
     {
         func = createNodeKey(KEY_FUNC, createOp(OP_COMMA), body);
         func->name = name;
@@ -643,13 +650,12 @@ node_t* getParam(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
-    skipSeparator(&program->current_symbol);
     CHECK(*program->current_symbol == '(', NULL);
     ++program->current_symbol;
     if(*program->current_symbol == ')')
     {
         ++program->current_symbol;
-        return NULL;
+        return createOp(OP_NOPARAM);
     }
 
     node_t* val = getN(program);
@@ -706,3 +712,33 @@ node_t* getRet(program_t* program)
 }
 
 //=========================================================================
+
+node_t* callFunc(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    node_t* val = 0;
+    name_t name = getName(program);
+    CHECK(name != NULL, NULL);
+
+    node_t* param = getParam(program);
+    if(param == NULL)
+    {
+        return NULL;
+    }
+    if(param->data.opValue == OP_NOPARAM)
+    {
+        val = createNodeKey(KEY_FUNC, createOp(OP_CONNECT), createOp(OP_CONNECT));
+        treeNodeDtor(val->left);
+        val->left = NULL;
+    }
+    else
+    {
+        val = createNodeKey(KEY_FUNC, param, createOp(OP_CONNECT));
+    }
+    treeNodeDtor(val->right);
+    val->right = NULL;
+    val->name = name;
+
+    return val;
+}

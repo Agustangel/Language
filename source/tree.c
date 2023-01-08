@@ -760,6 +760,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"%s_%p\"->", node_prev->name, node_prev);
             break;
 
+        case KEY_ASSIGN:
+            fprintf(dot_out, "\t\t\":=_%p\"->", node_prev);
+            break;
+
         default:
             break;
         }

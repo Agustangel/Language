@@ -45,6 +45,7 @@ enum node_op
     OP_MORE    =  14,
     OP_LESS    =  15,
     OP_COMMA   =  16,
+    OP_NOPARAM =  17
 };
 
 enum key_word
