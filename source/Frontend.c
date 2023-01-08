@@ -176,6 +176,7 @@ node_t* makeAST(program_t* program)
 
 //=========================================================================
 
+
 void getNodeS(program_t* program, node_t** node, char stop_symbol)
 {
     CHECK(program != NULL, ;);
@@ -192,16 +193,13 @@ void getNodeS(program_t* program, node_t** node, char stop_symbol)
 
     node_t* val = getS(program);
     CHECK(val != NULL, ;);
-    *node = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
+    *node = val;
 
+    skipSeparator(&program->current_symbol);
     if(*program->current_symbol != stop_symbol)
     {
+        *node = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
         getNodeS(program, &(*node)->right, stop_symbol);
-    }
-    else
-    {
-        treeNodeDtor((*node)->right);
-        (*node)->right = NULL;        
     }
 }
 
@@ -465,12 +463,13 @@ node_t* getIf(program_t* program)
 
     CHECK(*program->current_symbol == '[', NULL);
     ++program->current_symbol;
-    skipSeparator(&program->current_symbol);
     
+    val = getS(program);
+    CHECK(val != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
     if(*program->current_symbol != ']')
     {
-        val = getS(program);
-        CHECK(val != NULL, NULL);
         val = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
         getNodeS(program, &val->right, ']');
     }
@@ -521,12 +520,13 @@ node_t* getWhile(program_t* program)
 
     CHECK(*program->current_symbol == '[', NULL);
     ++program->current_symbol;
-    skipSeparator(&program->current_symbol);
-    
+
+    val = getS(program);
+    CHECK(val != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);   
     if(*program->current_symbol != ']')
     {
-        val = getS(program);
-        CHECK(val != NULL, NULL);
         val = createNodeOp(OP_CONNECT, val, createOp(OP_CONNECT));
         getNodeS(program, &val->right, ']');
     }

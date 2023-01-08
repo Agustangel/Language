@@ -1,0 +1,10 @@
+func foo(a, b)
+[
+    a := 5
+    if(a > b)
+    [
+        a := b
+    ]
+
+    ret a
+]
