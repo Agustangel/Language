@@ -45,18 +45,21 @@ enum node_op
     OP_MORE    =  14,
     OP_LESS    =  15,
     OP_COMMA   =  16,
-    OP_NOPARAM =  17
+    OP_NOPARAM =  17,
+    OP_SQRT    =  18,
+    OP_AND     =  19,
+    OP_OR      =  20
 };
 
 enum key_word
 {
-    KEY_IF     = 20,
-    KEY_ELSE   = 21,
-    KEY_WHILE  = 22,
-    KEY_ASSIGN = 23,
-    KEY_MAIN   = 24,
-    KEY_FUNC   = 25,
-    KEY_RET    = 26
+    KEY_IF     = 30,
+    KEY_ELSE   = 31,
+    KEY_WHILE  = 32,
+    KEY_ASSIGN = 33,
+    KEY_START  = 34,
+    KEY_FUNC   = 35,
+    KEY_RET    = 36
 };
 
 //=========================================================================

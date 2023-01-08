@@ -159,15 +159,16 @@ node_t* makeAST(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
-    skipSeparator(&program->current_symbol);
-    node_t* root = NULL;
+    node_t* root = getMain(program);
+    CHECK(root != NULL, NULL);
 
+    skipSeparator(&program->current_symbol);
     if(*program->current_symbol != '\0')
     {
-        root = getS(program);
-        CHECK(root != NULL, NULL);
-        root = createNodeKey(KEY_MAIN, root, createOp(OP_CONNECT));
-        getNodeS(program, &root->right, '\0');
+        root->right = getS(program);
+        CHECK(root->right != NULL, NULL);
+        root->right = createNodeOp(OP_CONNECT, root->right, createOp(OP_CONNECT));
+        getNodeS(program, &root->right->right, '\0');
     }
     CHECK(*program->current_symbol == '\0', NULL);
     
@@ -241,7 +242,12 @@ node_t* getS(program_t* program)
         return val;
     }
 
-    val = getN(program);
+    val = callFunc(program);
+    if(val == NULL)
+    {
+        --program->current_symbol;
+        val = getN(program);
+    }
     skipSeparator(&program->current_symbol);
     if(strncmp(program->current_symbol, ":=", 2) == 0)
     {
@@ -409,6 +415,11 @@ node_t* getL(program_t* program)
         program->current_symbol += 2;
         return createNodeOp(OP_LN, NULL, getP(program));        
     }
+    if(strncmp(program->current_symbol, "sqrt", 4) == 0)
+    {
+        program->current_symbol += 4;
+        return createNodeOp(OP_SQRT, NULL, getP(program));        
+    }
 
     node_t* val = getP(program);
     skipSeparator(&program->current_symbol);
@@ -436,9 +447,15 @@ node_t* getIf(program_t* program)
     CHECK(*program->current_symbol == '(', NULL);
     ++program->current_symbol;
 
-    node_t* val_1 = getP(program);
+    node_t* val_1 = callFunc(program);
+    if(val_1 == NULL)
+    {
+        --program->current_symbol;
+        val_1 = getP(program);
+    }
     skipSeparator(&program->current_symbol);
-    if((*program->current_symbol == '>') || (*program->current_symbol == '<') || (*program->current_symbol == '='))
+    if((*program->current_symbol == '>') || (*program->current_symbol == '<') || (*program->current_symbol == '=') || 
+       (*program->current_symbol == '&') || (*program->current_symbol == '|'))
     {
         char op = *program->current_symbol;
         ++program->current_symbol;
@@ -452,9 +469,17 @@ node_t* getIf(program_t* program)
         {
             val_1 = createNodeOp(OP_LESS, val_1, val_2);
         }
-        else
+        else if(op == '=')
         {
             val_1 = createNodeOp(OP_EQUAL, val_1, val_2);
+        }
+        else if(op == '&')
+        {
+            val_1 = createNodeOp(OP_AND, val_1, val_2);
+        }
+        else if(op == '|')
+        {
+            val_1 = createNodeOp(OP_OR, val_1, val_2);
         }
     }
     CHECK(*program->current_symbol == ')', NULL);
@@ -493,7 +518,12 @@ node_t* getWhile(program_t* program)
     CHECK(*program->current_symbol == '(', NULL);
     ++program->current_symbol;
 
-    node_t* val_1 = getP(program);
+    node_t* val_1 = callFunc(program);
+    if(val_1 == NULL)
+    {
+        --program->current_symbol;
+        val_1 = getP(program);
+    }
     skipSeparator(&program->current_symbol);
     if((*program->current_symbol == '>') || (*program->current_symbol == '<') || (*program->current_symbol == '='))
     {
@@ -717,7 +747,7 @@ node_t* callFunc(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
-    node_t* val = 0;
+    node_t* val = NULL;
     name_t name = getName(program);
     CHECK(name != NULL, NULL);
 
@@ -741,4 +771,26 @@ node_t* callFunc(program_t* program)
     val->name = name;
 
     return val;
+}
+
+//=========================================================================
+
+node_t* getMain(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    if(strncmp(program->current_symbol, "func", 4) != 0)
+    {
+        return NULL;
+    }
+    program->current_symbol += 4;
+
+    node_t* val = getF(program);
+    CHECK(val != NULL, NULL);
+    CHECK(strcmp(val->name, "main") == 0, NULL);
+
+    val = createNodeKey(KEY_START, val, createOp(OP_CONNECT));
+
+    return val;    
 }

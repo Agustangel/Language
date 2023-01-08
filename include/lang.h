@@ -79,3 +79,4 @@ void getNodeParam(program_t* program, node_t** node);
 char* getName(program_t* program);
 int getLenName(program_t* program);
 node_t* callFunc(program_t* program);
+node_t* getMain(program_t* program);

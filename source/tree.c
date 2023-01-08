@@ -338,6 +338,21 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
                                style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
             break;
 
+        case OP_SQRT:
+            fprintf(dot_out, "\n\t\t\"sqrt_%p\"[shape = \"ellipse\", label = \"sqrt\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_AND:
+            fprintf(dot_out, "\n\t\t\"&_%p\"[shape = \"ellipse\", label = \"&\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
+        case OP_OR:
+            fprintf(dot_out, "\n\t\t\"|_%p\"[shape = \"ellipse\", label = \"|\", color=\"#900000\", \
+                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            break;
+
         default:
             break;
         }
@@ -357,8 +372,8 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
     case KEY:
         switch(node->data.keyValue)
         {
-        case KEY_MAIN:
-            fprintf(dot_out, "\n\t\t\"main_%p\"[shape = \"ellipse\", label = \"main\", color=\"#800000\", \
+        case KEY_START:
+            fprintf(dot_out, "\n\t\t\"start_%p\"[shape = \"ellipse\", label = \"start\", color=\"#800000\", \
                                style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
             break;
 
@@ -486,6 +501,14 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"ret_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
             break;
 
+        case OP_SQRT:
+            fprintf(dot_out, "\t\t\"sqrt_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
+        case KEY_FUNC:
+            fprintf(dot_out, "\t\t\"%s_%p\"->\"%d_%p\";\n", node_prev->name, node_prev, node->data.intValue, node);
+            break;
+
         default:
             break;
         }
@@ -566,6 +589,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"%s_%p\"->\"%c_%p\";\n", node_prev->name, node_prev, *node->data.varValue, node);
             break;
 
+        case OP_SQRT:
+            fprintf(dot_out, "\t\t\"sqrt_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            break;
+
         default:
             break;
         }
@@ -634,8 +661,8 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"<_%p\"->", node_prev);
             break;
 
-        case KEY_MAIN:
-            fprintf(dot_out, "\t\t\"main_%p\"->", node_prev);
+        case KEY_START:
+            fprintf(dot_out, "\t\t\"start_%p\"->", node_prev);
             break;
 
         case KEY_ASSIGN:
@@ -660,6 +687,18 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
 
         case KEY_RET:
             fprintf(dot_out, "\t\t\"ret_%p\"->", node_prev);
+            break;
+
+        case OP_SQRT:
+            fprintf(dot_out, "\t\t\"sqrt_%p\"->", node_prev);
+            break;
+
+        case OP_AND:
+            fprintf(dot_out, "\t\t\"&_%p\"->", node_prev);
+            break;
+
+        case OP_OR:
+            fprintf(dot_out, "\t\t\"|_%p\"->", node_prev);
             break;
 
         default:
@@ -732,6 +771,18 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\",_%p\";\n", node);
             break;
 
+        case OP_SQRT:
+            fprintf(dot_out, "\"sqrt_%p\";\n", node);
+            break;
+
+        case OP_AND:
+            fprintf(dot_out, "\"&_%p\";\n", node);
+            break;
+
+        case OP_OR:
+            fprintf(dot_out, "\"|_%p\";\n", node);
+            break;
+
         default:
             break;
         }
@@ -740,8 +791,8 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
     case KEY:
         switch(operation)
         {
-        case KEY_MAIN:
-            fprintf(dot_out, "\t\t\"main_%p\"->", node_prev);
+        case KEY_START:
+            fprintf(dot_out, "\t\t\"start_%p\"->", node_prev);
             break;
 
         case KEY_WHILE:
@@ -764,6 +815,13 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\":=_%p\"->", node_prev);
             break;
 
+        case OP_AND:
+            fprintf(dot_out, "\t\t\"&_%p\"->", node_prev);
+            break;
+
+        case OP_OR:
+            fprintf(dot_out, "\t\t\"|_%p\"->", node_prev);
+            break;
         default:
             break;
         }
