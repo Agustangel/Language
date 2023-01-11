@@ -592,16 +592,75 @@ void printFindGlobalVar(tree_t* tree, RAM_t* ram, FILE* code)
     CHECK(ram  != NULL, ;);
     CHECK(code != NULL, ;);
 
+    node_t* node = tree->root;
+
+    while((node->type == KEY) && (node->data.keyValue == KEY_DEC))
+    {
+        if(node->left != NULL)
+        {
+            if((node->left->type == KEY) && (node->left->data.keyValue == KEY_ASSIGN))
+            {
+                node_t* new_var = node->left->left;
+                variable_t* var = searchVar(ram->global_var, new_var->name);
+
+                if(var == NULL)
+                {
+                    var = varCtor(ram->global_var->count, new_var->name, 1, hashFAQ6(new_var->name));
+                    stack_push(ram->global_var, var);
+                }
+
+                printEquation(tree, node->left->right, ram, 0, code);
+                fprintf(code, "pop [%lu]\n", var->number);
+            }
+        }
+        node = node->right;
+        if(node == NULL) break;
+    }
+
+    if(node != NULL)
+    {   
+        if((node->type == KEY) && (node->data.keyValue == KEY_ASSIGN))
+        {
+            node_t* new_var = node->left;
+            variable_t* var = searchVar(ram->global_var, new_var->name);
+
+            if(var == NULL)
+            {
+                var = varCtor(ram->global_var->count, new_var->name, 1, hashFAQ6(new_var->name));
+                stack_push(ram->global_var, var);
+            }
+
+            printEquation(tree, node->right, ram, 0, code);
+            fprintf(code, "pop [%lu]\n", var->number);
+        }
+    }
 }
 
 //=========================================================================
 
-void findLocalVar(node_t* node, stack_t* locale_vars, stack_t* global_vars)
+void findLocalVar(tree_t* tree, node_t* node, stack_t* locale_vars, stack_t* global_vars)
 {
     CHECK(node        != NULL, ;);
     CHECK(locale_vars != NULL, ;);
     CHECK(global_vars != NULL, ;);
 
+    if(node->type == VAR)
+    {
+        if(!searchVar(global_vars, node->name) && !searchVar(locale_vars, node->name))
+        {
+            variable_t* new_var = varCtor(locale_vars->count, node->name, 0, hashFAQ6(node->name));
+            stack_push(locale_vars, new_var);
+        }
+    }
+
+    if(node->left  != NULL)
+    {
+        findLocalVar(tree, node->left, locale_vars, global_vars);
+    }
+    if(node->right != NULL) 
+    {
+        findLocalVar(tree, node->right, locale_vars, global_vars);
+    }
 }
 
 //=========================================================================
