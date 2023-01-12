@@ -80,6 +80,7 @@ int programCtor(FILE* file, program_t* program);
 int programDtor(program_t* program);
 size_t skipSeparator(char** string);
 node_t* makeAST(program_t* program);
+void getNodeDec(program_t* program, node_t** node, char stop_symbol);
 node_t* getS(program_t* program);
 node_t* getE(program_t* program);
 node_t* getT(program_t* program);

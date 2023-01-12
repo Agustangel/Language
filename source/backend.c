@@ -163,7 +163,7 @@ void printBegin(tree_t* tree, RAM_t* ram, int count_var, FILE* code)
     node_t* node = tree->root;
     CHECK(node != NULL, ;);
     
-    if(node->left != NULL)
+    if((node->left != NULL) && (node->left->data.keyValue != KEY_ASSIGN))
     {
         printS(tree, node->left, ram, count_var, code);
     }

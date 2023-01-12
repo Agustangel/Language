@@ -94,23 +94,19 @@ node_t* makeAST(program_t* program)
     {
         start_main = true;
         main = createNodeKey(KEY_DEC, main, createKey(KEY_DEC));
-        treeNodeDtor(main->right);
-        main->right = NULL;
         start = main;
     }
     else
     {
         start = findStart(root);
         start->left = main;
+        start->right = createKey(KEY_DEC);
     }
 
     skipSeparator(&program->current_symbol);
     if(*program->current_symbol != '\0')
     {
-        start->right = getS(program);
-        CHECK(start->right != NULL, NULL);
-        start->right = createNodeOp(OP_CONNECT, start->right, createOp(OP_CONNECT));
-        getNodeS(program, &start->right->right, '\0');
+        getNodeDec(program, &start->right, '\0');
     }
     CHECK(*program->current_symbol == '\0', NULL);
     
@@ -124,6 +120,38 @@ node_t* makeAST(program_t* program)
 
 //=========================================================================
 
+void getNodeDec(program_t* program, node_t** node, char stop_symbol)
+{
+    CHECK(program != NULL, ;);
+    CHECK(node    != NULL, ;);
+
+    treeNodeDtor(*node);
+    *node = NULL;
+
+    skipSeparator(&program->current_symbol);
+    if(*program->current_symbol == stop_symbol)
+    {
+        return;
+    }
+    if(strncmp(program->current_symbol, "func", 4) != 0)
+    {
+        return;
+    }
+    program->current_symbol += 4;
+
+    node_t* val = getF(program);
+    CHECK(val != NULL, ;);
+    *node = val;
+
+    skipSeparator(&program->current_symbol);
+    if(*program->current_symbol != stop_symbol)
+    {
+        *node = createNodeKey(KEY_DEC, val, createKey(KEY_DEC));
+        getNodeDec(program, &(*node)->right, stop_symbol);
+    }
+}
+
+//=========================================================================
 
 void getNodeS(program_t* program, node_t** node, char stop_symbol)
 {
