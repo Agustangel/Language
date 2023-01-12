@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
-#include <stack.h>
 #include <logger.h>
 #include <onegin.h>
 
+#include "stack.h"
 #include "tree.h"
 
 
@@ -43,8 +43,6 @@ enum
 
 typedef struct RAM
 {
-    size_t bp;
-
     size_t count_ifjmp;
 
     stack_t* locale_var;

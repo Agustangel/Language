@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     tree.root = root;
     dumpGraphTree(&tree);
 
-    //generateAsmCode(&tree);
+    generateAsmCode(&tree);
 
     programDtor(&program);
     treeDtor(&tree);

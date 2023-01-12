@@ -17,16 +17,17 @@ int parseArgs(int argc, char* argv[], name_t* name_program)
     CHECK(argv  !=  NULL, ERR_LANG_NULL_PTR);
     CHECK(argc  > 0, ERR_LANG_NEGATIVE_COUNT);
 
-    // if(argc < 2)
-    // {
-    //     printf("Input name of the program\n");
-    //     return ERR_LANG_NO_INPUT;
-    // }
-    // if (argc == 2)
-    // {
-    //     *name_program = argv[1];
-    // }
-    *name_program = "program.txt";
+    if(argc < 2)
+    {
+        printf("Input name of the program\n");
+        return ERR_LANG_NO_INPUT;
+    }
+    if (argc == 2)
+    {
+        *name_program = argv[1];
+    }
+
+    //*name_program = "files/program.txt";
 
     return LANG_SUCCESS;
 }
@@ -94,18 +95,20 @@ node_t* makeAST(program_t* program)
     {
         start_main = true;
         main = createNodeKey(KEY_DEC, main, createKey(KEY_DEC));
+        treeNodeDtor(main->right);
+        main->right = NULL;
         start = main;
     }
     else
     {
         start = findStart(root);
         start->left = main;
-        start->right = createKey(KEY_DEC);
     }
 
     skipSeparator(&program->current_symbol);
     if(*program->current_symbol != '\0')
     {
+        start->right = createKey(KEY_DEC);
         getNodeDec(program, &start->right, '\0');
     }
     CHECK(*program->current_symbol == '\0', NULL);
