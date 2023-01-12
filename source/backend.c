@@ -136,17 +136,17 @@ void generateAsmCode(tree_t* tree)
     RAM_t ram;
     RamCtor(&ram);
 
-    printBegin(tree, &ram, 0, code);
-    // Print_dec(tree, &ram, code);
+    printBegin(tree, &ram, code);
+    printDec(tree, &ram, code);
 
-    // Free_vars(ram.global_var);
+    freeVars(ram.global_var);
 
     fclose(code);
 }
 
 //=========================================================================
 
-void printBegin(tree_t* tree, RAM_t* ram, int count_var, FILE* code)
+void printBegin(tree_t* tree, RAM_t* ram, FILE* code)
 {
     CHECK(tree != NULL, ;);
     CHECK(ram  != NULL, ;);
@@ -162,62 +162,44 @@ void printBegin(tree_t* tree, RAM_t* ram, int count_var, FILE* code)
 
     node_t* node = tree->root;
     CHECK(node != NULL, ;);
-    
-    if((node->left != NULL) && (node->left->data.keyValue != KEY_ASSIGN))
-    {
-        printS(tree, node->left, ram, count_var, code);
-    }
-    if(node->right != NULL)
-    {
-        printS(tree, node->right, ram, count_var, code);
-    }
 }
 
 //=========================================================================
 
-void printS(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
+void printDec(tree_t* tree, RAM_t* ram, FILE* code)
 {
     CHECK(tree != NULL, ;);
-    CHECK(node != NULL, ;);
     CHECK(ram  != NULL, ;);
     CHECK(code != NULL, ;);
 
-    if((node->type == KEY) && (node->data.keyValue == KEY_FUNC))
-    {
-        printF(tree, node, ram, count_var, code);
-    }
-    if((node->type == KEY) && (node->data.keyValue == KEY_ASSIGN))
-    {
-        printAs(tree, node, ram, code);
-    }
-    if((node->type == KEY) && (node->data.keyValue == KEY_IF))
-    {
-        printIf(tree, node, ram, count_var, code);
-    }
-    if((node->type == KEY) && (node->data.keyValue == KEY_WHILE))
-    {
-        printWhile(tree, node, ram, count_var, code);
-    }
-    if((node->type == KEY) && (node->data.keyValue == KEY_RET))
-    {
-        printRet(tree, node, ram, code);
-    }    
-    if((node->type == OP) && (node->data.keyValue == OP_CONNECT))
+    node_t* node = tree->root;
+
+    while((node->type == KEY) && (node->data.keyValue == KEY_DEC))
     {
         if(node->left != NULL)
         {
-            printS(tree, node->left, ram, count_var, code);
+            if((node->left->type == KEY) && (node->left->data.keyValue == KEY_FUNC))
+            {
+                printF(tree, node->left, ram, code);
+            }
         }
-        if(node->right != NULL)
+
+        node = node->right;
+        if(node == NULL) break;
+    }
+
+    if(node != NULL)
+    {   
+        if((node->type == KEY) && (node->data.keyValue == KEY_FUNC))
         {
-            printS(tree, node->right, ram, count_var, code);
-        }        
+            printF(tree, node, ram, code);
+        }
     }
 }
 
 //=========================================================================
 
-void printF(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
+void printF(tree_t* tree, node_t* node, RAM_t* ram, FILE* code)
 {
     CHECK(tree != NULL, ;);
     CHECK(node != NULL, ;);
@@ -239,7 +221,7 @@ void printF(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
     fprintf(code, "\n");
 
     printBody(tree, node->right, ram, count_param, code);
-    fprintf(code, "ret\n\n\n");
+    fprintf(code, "\n\n\n");
 
     freeVars(ram->locale_var);
 }
@@ -253,14 +235,56 @@ void printBody(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code
     CHECK(ram  != NULL, ;);
     CHECK(code != NULL, ;);
 
-    if(node->left != NULL)
+    if((node->type == OP) && (node->data.opValue == OP_CONNECT))
     {
         printS(tree, node->left, ram, count_var, code);
+        printBody(tree, node->right, ram, count_var, code);
     }
-    if(node->right != NULL)
+}
+
+//=========================================================================
+
+void printS(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
+{
+    CHECK(tree != NULL, ;);
+    CHECK(node != NULL, ;);
+    CHECK(ram  != NULL, ;);
+    CHECK(code != NULL, ;);
+
+
+    if((node->type == KEY) && (node->data.keyValue == KEY_FUNC) && (strcmp(node->name, "print") == 0))
     {
-        printS(tree, node->right, ram, count_var, code);
+        printPrint(tree, node, ram, code);
+        return;
     }
+    if((node->type == KEY) && (node->data.keyValue == KEY_FUNC) && (strcmp(node->name, "input") == 0))
+    {
+        printInput(tree, node, ram, code);
+        return;
+    }
+    if((node->type == KEY) && (node->data.keyValue == KEY_IF))
+    {   
+        printIf(tree, node, ram, count_var, code);
+        return;
+    }
+    if((node->type == KEY) && (node->data.keyValue == KEY_WHILE))
+    {
+        printWhile(tree, node, ram, count_var, code);
+        return;
+    }
+    if((node->type == KEY) && (node->data.keyValue == KEY_ASSIGN))
+    {
+        printAs(tree, node, ram, code);
+        return;
+    }
+    if((node->type == KEY) && (node->data.keyValue == KEY_FUNC))
+    {
+        printCall(tree, node, ram, count_var, code);
+        return;
+    } 
+    printRet(tree, node, ram, code);
+
+    return;
 }
 
 //=========================================================================
@@ -287,7 +311,7 @@ void printEquation(tree_t* tree, node_t* node, RAM_t* ram, FILE* code)
         }
         else 
         {
-            variable_t* var = searchVar(ram->locale_var, node->name);
+            variable_t* var = searchVar(ram->locale_var, node->data.varValue);
             if(var == NULL)
             {
                 tree->status = ERR_LANG_NO_VAR;
@@ -352,7 +376,10 @@ void printIf(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
     fprintf(code, "\n"
                   "If_begin%lu:\n", locale);
     printEquation(tree, node->left->left,  ram, code);
-    printEquation(tree, node->left->right, ram, code);
+    if(node->left->right != NULL)
+    {
+        printEquation(tree, node->left->right, ram, code);
+    }
 
     if(node->left->type == OP)
     {
@@ -366,10 +393,14 @@ void printIf(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
             default: break;
         }
     }
+    else if((node->left->type == KEY) && ((node->left->data.keyValue == KEY_FUNC)))
+    {
+        printCall(tree, node->left, ram, count_var, code);
+    }
     else
     {
         tree->status = ERR_LANG_WRONG_CONDITION;
-        return;
+        return;        
     }
 
     if((node->right->type == OP) && (node->right->data.opValue == OP_CONNECT))
@@ -409,7 +440,7 @@ void printWhile(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* cod
             case OP_MORE:    fprintf(code, "jbe :While_end%lu\n\n", locale); break;
             case OP_LESS:    fprintf(code, "jae :While_end%lu\n\n", locale); break;
             case OP_EQUAL:   fprintf(code, "jne :While_end%lu\n\n", locale); break;
-            //case OP_UNEQUAL: fprintf(code, "je  :While_end%lu\n\n", locale); break;
+            case OP_UNEQUAL: fprintf(code, "je  :While_end%lu\n\n", locale); break;
             
             default: break;
         }
@@ -443,7 +474,7 @@ void printAs(tree_t* tree, node_t* node, RAM_t* ram, FILE* code)
     CHECK(ram  != NULL, ;);
     CHECK(code != NULL, ;);
 
-    variable_t* var = searchVar(ram->global_var, node->left->name);
+    variable_t* var = searchVar(ram->global_var, node->left->data.varValue);
 
     if(var != NULL)
     {
@@ -598,11 +629,11 @@ void printFindGlobalVar(tree_t* tree, RAM_t* ram, FILE* code)
             if((node->left->type == KEY) && (node->left->data.keyValue == KEY_ASSIGN))
             {
                 node_t* new_var = node->left->left;
-                variable_t* var = searchVar(ram->global_var, new_var->name);
+                variable_t* var = searchVar(ram->global_var, new_var->data.varValue);
 
                 if(var == NULL)
                 {
-                    var = varCtor(ram->global_var->count, new_var->name, 1, hashFAQ6(new_var->name));
+                    var = varCtor(ram->global_var->count, new_var->data.varValue, 1, hashFAQ6(new_var->data.varValue));
                     stack_push(ram->global_var, var);
                 }
 
@@ -623,7 +654,7 @@ void printFindGlobalVar(tree_t* tree, RAM_t* ram, FILE* code)
 
             if(var == NULL)
             {
-                var = varCtor(ram->global_var->count, new_var->name, 1, hashFAQ6(new_var->name));
+                var = varCtor(ram->global_var->count, new_var->data.varValue, 1, hashFAQ6(new_var->data.varValue));
                 stack_push(ram->global_var, var);
             }
 
@@ -643,9 +674,9 @@ void findLocalVar(node_t* node, stack_t* locale_vars, stack_t* global_vars)
 
     if(node->type == VAR)
     {
-        if(!searchVar(global_vars, node->name) && !searchVar(locale_vars, node->name))
+        if(!searchVar(global_vars, node->data.varValue) && !searchVar(locale_vars, node->data.varValue))
         {
-            variable_t* new_var = varCtor(locale_vars->count, node->name, 0, hashFAQ6(node->name));
+            variable_t* new_var = varCtor(locale_vars->count, node->data.varValue, 0, hashFAQ6(node->data.varValue));
             stack_push(locale_vars, new_var);
         }
     }
