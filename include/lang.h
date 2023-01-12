@@ -1,8 +1,12 @@
 #pragma once
 
+#include <stdio.h>
 #include <math.h>
 #include <stdint.h>
-//#include <stack.h>
+#include <stack.h>
+#include <logger.h>
+#include <onegin.h>
+
 #include "tree.h"
 
 
@@ -30,23 +34,23 @@ enum
 {
     DATA_POISON      = -11,
     NULL_INDEX       =  -1,
-    START_INDEX      =   0,
+    START_INDEX      =   2,
     MAX_SIZE         = 100,
     INITIAL_CAPACITY =  20
 };
 
 //=========================================================================
 
-// typedef struct RAM
-// {
-//     size_t bp;
+typedef struct RAM
+{
+    size_t bp;
 
-//     size_t count_ifjmp;
+    size_t count_ifjmp;
 
-//     stack_t* locale_var;
-//     stack_t* global_var;
+    stack_t* locale_var;
+    stack_t* global_var;
 
-// } RAM_t;
+} RAM_t;
 
 //-------------------------------------------------------------------
 
@@ -94,29 +98,34 @@ char* getName(program_t* program);
 int getLenName(program_t* program);
 node_t* callFunc(program_t* program);
 node_t* getMain(program_t* program);
+node_t* getGlobal(program_t* program);
+node_t* getNodeGlobal(program_t* program, node_t** node);
+node_t* findStart(node_t* node);
 
 //-------------------------------------------------------------------
 
-// variable_t* getVar(stack_t* vars, int idx);
-// void freeVars(stack_t* vars);
-// variable_t* searchVar(stack_t* vars, char* name_var);
-// variable_t* varCtor(int number, name_t name, int initialization, unsigned int hash);
-// int varDtor(variable_t* var);
-// int RamCtor(RAM_t* ram);
-// int RamDtor(RAM_t* ram);
-// void generateAsmCode(tree_t* tree);
-// int findMain(tree_t* tree);
-// void printBegin(tree_t* tree, RAM_t* ram, FILE* code);
-// void printS(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);
-// void printF(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);
-// void printBody(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
-// void printIf(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
-// void printWhile(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
-// void findLocalVar(node_t* node, stack_t* locale_vars, stack_t* global_vars);
-// void printFindGlobalVar(tree_t* tree, RAM_t* ram, FILE* code);
-// unsigned int hashFAQ6(char* cmd);
-// void printArg(tree_t* tree, node_t* node, RAM_t* ram, size_t count_var, FILE* code);
-// void printRet(tree_t* tree, node_t* node, RAM_t* ram, size_t count_var, FILE* code);
-//void printCall(tree_t* tree, node_t* node, RAM_t* ram, size_t count_var, FILE* code);
-//void printPrint(tree_t* tree, node_t* node, RAM_t* ram, size_t count_var, FILE* code)
-//void printInput(tree_t* tree, node_t* node, RAM_t* ram, size_t count_var, FILE* code)
+variable_t* getVar(stack_t* vars, int idx);
+void freeVars(stack_t* vars);
+variable_t* searchVar(stack_t* vars, char* name_var);
+variable_t* varCtor(int number, name_t name, int initialization, unsigned int hash);
+int varDtor(variable_t* var);
+int RamCtor(RAM_t* ram);
+int RamDtor(RAM_t* ram);
+void generateAsmCode(tree_t* tree);
+int findMain(tree_t* tree);
+void printBegin(tree_t* tree, RAM_t* ram, int count_var, FILE* code);
+void printS(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
+void printF(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
+void printBody(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
+void printAs(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);
+void printEquation(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);
+void printIf(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
+void printWhile(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code);
+void findLocalVar(node_t* node, stack_t* locale_vars, stack_t* global_vars);
+void printFindGlobalVar(tree_t* tree, RAM_t* ram, FILE* code);
+unsigned int hashFAQ6(char* cmd);
+void printArg(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);
+void printRet(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);
+void printCall(tree_t* tree, node_t* node, RAM_t* ram, size_t count_var, FILE* code);
+void printPrint(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);
+void printInput(tree_t* tree, node_t* node, RAM_t* ram, FILE* code);

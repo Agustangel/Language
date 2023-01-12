@@ -1,17 +1,12 @@
-#include <stdio.h>
-#include <logger.h>
-#include <onegin.h>
 #include "lang.h"
 #include "debug.h"
+
 
 
 int main(int argc, char** argv)
 {
     logger_init(1, "lang.log");
     logger_set_level(INFO);
-
-    tree_t tree;
-    treeCtor(&tree);
 
     name_t name_program = NAME_POISON;
     int ret = parseArgs(argc, argv, &name_program);
@@ -24,6 +19,9 @@ int main(int argc, char** argv)
     programCtor(text, &program);
 
     fclose(text);
+
+    tree_t tree;
+    treeCtor(&tree, name_program);
 
     node_t* root = makeAST(&program);
     tree.root = root;

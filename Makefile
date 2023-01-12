@@ -3,19 +3,19 @@ INCLUDES=include
 SOURCE=source
 
 lang: main.o frontend.o tree.o backend.o
-	gcc -o lang $^ -llogger -lonegin -lm
+	gcc -o lang $^ -llogger -lonegin -lstack -lm
 
 main.o: main.c
-	gcc -g -O0 -I${INCLUDES}/ -c $^
+	gcc -g -O0 -I${INCLUDES}/ -c $^ -DPTR -DREMOVE_SAFETY
 
 frontend.o: ${SOURCE}/frontend.c
-	gcc -g -O0 -I${INCLUDES}/ -c $^
+	gcc -g -O0 -I${INCLUDES}/ -c $^ -DPTR -DREMOVE_SAFETY
 
 tree.o: ${SOURCE}/tree.c
-	gcc -g -O0 -I${INCLUDES}/ -c $^
+	gcc -g -O0 -I${INCLUDES}/ -c $^ -DPTR -DREMOVE_SAFETY
 
 backend.o: ${SOURCE}/backend.c
-	gcc -g -O0 -I${INCLUDES}/ -c $^
+	gcc -g -O0 -I${INCLUDES}/ -c $^ -DPTR -DREMOVE_SAFETY
 
 
 valgrind: lang

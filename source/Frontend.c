@@ -1,15 +1,12 @@
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <logger.h>
-#include <onegin.h>
+#include <stdbool.h>
 
 #include "lang.h"
 #include "debug.h"
 #include "tree.h"
-
 
 
 
@@ -88,19 +85,40 @@ node_t* makeAST(program_t* program)
 {
     CHECK(program != NULL, NULL);
 
-    node_t* root = getMain(program);
-    CHECK(root != NULL, NULL);
+    bool start_main = false;
+
+    node_t* root  = getGlobal(program);
+    node_t* main  = getMain(program);
+    node_t* start = NULL;
+    if(root == NULL)
+    {
+        start_main = true;
+        main = createNodeKey(KEY_DEC, main, createKey(KEY_DEC));
+        treeNodeDtor(main->right);
+        main->right = NULL;
+        start = main;
+    }
+    else
+    {
+        start = findStart(root);
+        start->left = main;
+    }
 
     skipSeparator(&program->current_symbol);
     if(*program->current_symbol != '\0')
     {
-        root->right = getS(program);
-        CHECK(root->right != NULL, NULL);
-        root->right = createNodeOp(OP_CONNECT, root->right, createOp(OP_CONNECT));
-        getNodeS(program, &root->right->right, '\0');
+        start->right = getS(program);
+        CHECK(start->right != NULL, NULL);
+        start->right = createNodeOp(OP_CONNECT, start->right, createOp(OP_CONNECT));
+        getNodeS(program, &start->right->right, '\0');
     }
     CHECK(*program->current_symbol == '\0', NULL);
     
+    if(start_main == true)
+    {
+        root = start;
+    }
+
     return root;
 }
 
@@ -719,7 +737,86 @@ node_t* getMain(program_t* program)
     CHECK(val != NULL, NULL);
     CHECK(strcmp(val->name, "main") == 0, NULL);
 
-    val = createNodeKey(KEY_START, val, createOp(OP_CONNECT));
-
     return val;    
+}
+
+//=========================================================================
+
+node_t* getGlobal(program_t* program)
+{
+    CHECK(program != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    if(strncmp(program->current_symbol, "func", 4) == 0)
+    {
+        return NULL;
+    }
+
+    node_t* val = getN(program);
+    
+    skipSeparator(&program->current_symbol);
+    if(strncmp(program->current_symbol, ":=", 2) != 0)
+    {
+        return NULL;
+    }
+    val = getAs(program, val->data.varValue);
+    val = createNodeKey(KEY_DEC, val, createKey(KEY_DEC));
+
+    skipSeparator(&program->current_symbol);
+    if(strncmp(program->current_symbol, "func", 4) != 0)
+    {
+        getNodeGlobal(program, &val->right);
+    }
+
+    return val;          
+}
+
+//=========================================================================
+
+node_t* getNodeGlobal(program_t* program, node_t** node)
+{
+    CHECK(program != NULL, NULL);
+    CHECK(node    != NULL, NULL);
+
+    skipSeparator(&program->current_symbol);
+    if(strncmp(program->current_symbol, "func", 4) == 0)
+    {
+        return NULL;
+    }
+
+    treeNodeDtor(*node);
+
+    node_t* val = getN(program);
+    CHECK(val != NULL, NULL);
+    skipSeparator(&program->current_symbol);
+
+    val = getAs(program, val->data.varValue);
+    val = createNodeKey(KEY_DEC, val, createKey(KEY_DEC));
+    *node = val;
+
+    skipSeparator(&program->current_symbol);
+    if(strncmp(program->current_symbol, "func", 4) != 0)
+    {
+        getNodeGlobal(program, &(*node)->right);
+    }
+}
+
+//=========================================================================
+
+node_t* findStart(node_t* node)
+{
+    CHECK(node != NULL, NULL);
+
+    if((node->type == KEY) && (node->data.keyValue == KEY_DEC))
+    {
+        if(node->right != NULL)
+        {
+            findStart(node->right);
+        }
+        else
+        {
+            return node;
+        }
+    }
+
 }

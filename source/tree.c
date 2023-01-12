@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "lang.h"
 #include "debug.h"
@@ -8,14 +9,37 @@
 
 //=========================================================================
 
-int treeCtor(tree_t* tree)
+int treeCtor(tree_t* tree, name_t name_program)
 {
     CHECK(tree !=  NULL, ERR_TREE_NULL_PTR);
 
     tree->root = NULL;
     tree->status = TREE_SUCCESS;
+    tree->name_equation = getNameFile(name_program);
 
     return TREE_SUCCESS;
+}
+
+//=========================================================================
+
+name_t getNameFile(name_t file)
+{
+    CHECK(file !=  NULL, NULL);
+
+    char* begin = file;
+    while ((strchr(begin, '/')) != NULL) 
+    {
+        begin = strchr(begin, '/') + 1;
+    }
+    name_t name_file = strdup(begin);
+
+    char* pointer_format  = strchr(name_file, '.');
+    if(pointer_format != NULL)
+    {
+        *pointer_format = '\0';
+    }
+
+    return name_file;
 }
 
 //=========================================================================
@@ -190,6 +214,7 @@ int treeDtor(tree_t* tree)
     treeNodeDtor(tree->root);
     tree->root = NULL;
     tree->status = TREE_ERROR;
+    tree->name_equation = NAME_POISON;
 
     return TREE_SUCCESS;
 }
@@ -372,9 +397,9 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
     case KEY:
         switch(node->data.keyValue)
         {
-        case KEY_START:
-            fprintf(dot_out, "\n\t\t\"start_%p\"[shape = \"ellipse\", label = \"start\", color=\"#800000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+        case KEY_DEC:
+            fprintf(dot_out, "\n\t\t\"dec_%p\"[shape = \"cube\", label = \"dec\", color=\"#800000\", \
+                               style=\"filled\", fillcolor = \"#FFF6D0\"];\n", node);
             break;
 
         case KEY_IF:
@@ -701,6 +726,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"|_%p\"->", node_prev);
             break;
 
+        case KEY_DEC:
+            fprintf(dot_out, "\t\t\"dec_%p\"->", node_prev);
+            break;
+
         default:
             break;
         }
@@ -791,8 +820,8 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
     case KEY:
         switch(operation)
         {
-        case KEY_START:
-            fprintf(dot_out, "\t\t\"start_%p\"->", node_prev);
+        case KEY_DEC:
+            fprintf(dot_out, "\t\t\"dec_%p\"->", node_prev);
             break;
 
         case KEY_WHILE:
@@ -837,6 +866,10 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         }  
         switch(node->data.keyValue)
         {
+        case KEY_DEC:
+            fprintf(dot_out, "\"dec_%p\";\n", node);
+            break;
+
         case KEY_WHILE:
             fprintf(dot_out, "\"while_%p\";\n", node);
             break;

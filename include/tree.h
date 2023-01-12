@@ -42,13 +42,14 @@ enum node_op
     OP_CLOSBRT =  11,
     OP_CONNECT =  12,
     OP_EQUAL   =  13,
-    OP_MORE    =  14,
-    OP_LESS    =  15,
-    OP_COMMA   =  16,
-    OP_NOPARAM =  17,
-    OP_SQRT    =  18,
-    OP_AND     =  19,
-    OP_OR      =  20
+    OP_UNEQUAL =  14,
+    OP_MORE    =  15,
+    OP_LESS    =  16,
+    OP_COMMA   =  17,
+    OP_NOPARAM =  18,
+    OP_SQRT    =  19,
+    OP_AND     =  20,
+    OP_OR      =  21
 };
 
 enum key_word
@@ -93,20 +94,23 @@ typedef struct tree_t
 {
     node_t* root;
     treeStatus_t status;
+    name_t name_equation;
 
 } tree_t;
 
 //=========================================================================
 
-int treeCtor(tree_t* tree);
+int treeCtor(tree_t* tree, name_t name_program);
 node_t* createNodeOp(int val, node_t* left, node_t* right);
 node_t* createNodeKey(int val, node_t* left, node_t* right);
 node_t* copyNode(node_t* prev_node);
 node_t* createNum(int val);
 node_t* createVar(char* val);
 node_t* createOp(int opValue);
+node_t* createKey(int keyValue);
 int treeDtor(tree_t* tree);
 void treeNodeDtor(node_t* node);
 int dumpGraphTree(tree_t* tree);
 int dumpGraphNode(node_t* node, FILE* dot_out);
 int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_out);
+name_t getNameFile(name_t file);
