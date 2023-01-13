@@ -6,21 +6,6 @@ func main()
     solveSquare(a,b,c)
 ]
 
-func isZero(x)
-[
-    if(x = 0)
-    [
-        ret 1
-    ]
-
-    ret 0
-]
-
-func solveLinear(a, b)
-[
-    ret -b / a
-]
-
 func solveSquare(a, b, c)
 [
     if(isZero(a))
@@ -57,4 +42,19 @@ func solveSquare(a, b, c)
     [
         print(t)
     ]
+]
+
+func isZero(x)
+[
+    if(x = 0)
+    [
+        ret 1
+    ]
+
+    ret 0
+]
+
+func solveLinear(a, b)
+[
+    ret -b / a
 ]

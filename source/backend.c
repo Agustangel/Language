@@ -157,11 +157,10 @@ void printBegin(tree_t* tree, RAM_t* ram, FILE* code)
 
     printFindGlobalVar(tree, ram, code);
 
-    fprintf(code, "\n"
-                  "push %d\n"
-                  "pop rfx\n"
-                  "call :main\n"
-                  "hlt\n\n", ram->global_var->count);
+    fprintf(code, "push %d\n"
+                  "pop rax\n"
+                  "call main:\n"
+                  "hlt\n", ram->global_var->count);
 
     node_t* node = tree->root;
     CHECK(node != NULL, ;);
@@ -222,12 +221,9 @@ void printF(tree_t* tree, node_t* node, RAM_t* ram, FILE* code)
     fprintf(code, "%s:\n", node->name);
     for(int idx = 0; idx < count_param; ++idx)
     {
-        fprintf(code, "pop [rfx + %d]\n", idx);
+        fprintf(code, "pop [rax + %d]\n", idx);
     }
-    fprintf(code, "\n");
-
     printBody(tree, node->right, ram, count_var, code);
-    fprintf(code, "\n");
 
     freeVars(ram->locale_var);
 }
@@ -332,7 +328,7 @@ void printEquation(tree_t* tree, node_t* node, RAM_t* ram, FILE* code)
                 tree->status = ERR_LANG_NO_INIT;
                 return;
             }
-            fprintf(code, "push [rfx + %d]\n", var->number);
+            fprintf(code, "push [rax + %d]\n", var->number);
         }
         break;
 
@@ -383,8 +379,7 @@ void printIf(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
     size_t locale = ram->count_ifjmp;
     ++ram->count_ifjmp;
 
-    fprintf(code, "\n"
-                  "If_begin%lu:\n", locale);
+    fprintf(code, "IfBegin%lu:\n", locale);
     printEquation(tree, node->left->left,  ram, code);
     if(node->left->right != NULL)
     {
@@ -394,11 +389,11 @@ void printIf(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
     if(node->left->type == OP)
     {
         switch(node->left->data.opValue)
-        {
-            case OP_MORE:    fprintf(code, "jbe :If_end%lu\n\n", locale); break;
-            case OP_LESS:    fprintf(code, "jae :If_end%lu\n\n", locale); break;
-            case OP_EQUAL:   fprintf(code, "jne :If_end%lu\n\n", locale); break;
-            case OP_UNEQUAL: fprintf(code, "je  :If_end%lu\n\n", locale); break;
+        { 
+            case OP_MORE:    fprintf(code, "ja  IfEnd%lu:\n", locale); break;
+            case OP_LESS:    fprintf(code, "jb  IfEnd%lu:\n", locale); break;
+            case OP_EQUAL:   fprintf(code, "je  IfEnd%lu:\n", locale); break;
+            case OP_UNEQUAL: fprintf(code, "jne IfEnd%lu:\n", locale); break;
             
             default: break;
         }
@@ -421,9 +416,8 @@ void printIf(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* code)
     {
         printS(tree, node->right, ram, count_var, code);
     }
-    fprintf(code, "\n"
-                  "If_end%lu:"
-                  "\n\n", locale);
+    fprintf(code, "IfEnd%lu:"
+                  "\n", locale);
                   
 }
 //=========================================================================
@@ -438,8 +432,7 @@ void printWhile(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* cod
     size_t locale = ram->count_ifjmp;
     ++ram->count_ifjmp;
 
-    fprintf(code, "\n"
-                  "While_begin%lu:\n", locale);
+    fprintf(code, "WhileBegin%lu:\n", locale);
     printEquation(tree, node->left->left,  ram, code);
     printEquation(tree, node->left->right, ram, code);
 
@@ -447,10 +440,10 @@ void printWhile(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* cod
     {
         switch(node->left->data.opValue)
         {
-            case OP_MORE:    fprintf(code, "jbe :While_end%lu\n\n", locale); break;
-            case OP_LESS:    fprintf(code, "jae :While_end%lu\n\n", locale); break;
-            case OP_EQUAL:   fprintf(code, "jne :While_end%lu\n\n", locale); break;
-            case OP_UNEQUAL: fprintf(code, "je  :While_end%lu\n\n", locale); break;
+            case OP_MORE:    fprintf(code, "ja  WhileEnd%lu:\n", locale); break;
+            case OP_LESS:    fprintf(code, "jb  WhileEnd%lu:\n", locale); break;
+            case OP_EQUAL:   fprintf(code, "je  WhileEnd%lu:\n", locale); break;
+            case OP_UNEQUAL: fprintf(code, "jne WhileEnd%lu:\n", locale); break;
             
             default: break;
         }
@@ -469,9 +462,8 @@ void printWhile(tree_t* tree, node_t* node, RAM_t* ram, int count_var, FILE* cod
     {
         printS(tree, node->right, ram, count_var, code);
     }
-    fprintf(code, "\n"
-                  "jmp :While_begin%lu\n" 
-                  "While_end%lu:\n\n", locale, locale);
+    fprintf(code, "jmp WhileBegin%lu:\n" 
+                  "WhileEnd%lu:\n", locale, locale);
                   
 }
 
@@ -503,7 +495,7 @@ void printAs(tree_t* tree, node_t* node, RAM_t* ram, FILE* code)
         var->initialization  = 1;
 
         printEquation(tree, node->right, ram, code);
-        fprintf(code, "pop [rfx + %d]\n", var->number);
+        fprintf(code, "pop [rax + %d]\n", var->number);
     }
 }
 
@@ -560,19 +552,15 @@ void printCall(tree_t* tree, node_t* node, RAM_t* ram, size_t count_var, FILE* c
         printArg(tree, node->left, ram, code);
     }
 
-    fprintf(code, "\n"
-                  "push %lu\n"
-                  "push rfx\n"
+    fprintf(code, "push %lu\n"
+                  "push rax\n"
                   "add\n"
-                  "pop rfx\n"
-                  "\n"
-                  "call :%s\n"
-                  "\n"
-                  "push rfx\n"
+                  "pop rax\n"
+                  "call %s:\n"
+                  "push rax\n"
                   "push %lu\n"
                   "sub\n"
-                  "pop rfx\n"
-                  "\n\n", count_var, node->name, count_var);
+                  "pop rax\n", count_var, node->name, count_var);
 }
 
 //=========================================================================
@@ -616,7 +604,7 @@ void printInput(tree_t* tree, node_t* node, RAM_t* ram, FILE* code)
         var->initialization = 1;
 
         fprintf(code, "in\n"
-                      "pop [rfx + %d]\n", var->number);
+                      "pop [rax + %d]\n", var->number);
     }
 }
 

@@ -1,160 +1,113 @@
-
 push 0
-pop rfx
-call :main
+pop rax
+call main:
 hlt
-
 main:
-
 in
-pop [rfx + 0]
+pop [rax + 0]
 in
-pop [rfx + 1]
+pop [rax + 1]
 in
-pop [rfx + 2]
-
+pop [rax + 2]
 push 6
-push rfx
+push rax
 add
-pop rfx
-
-call :solveSquare
-
-push rfx
+pop rax
+call solveSquare:
+push rax
 push 6
 sub
-pop rfx
-
-
-
-isZero:
-pop [rfx + 0]
-
-
-If_begin0:
-push 0
-jne :If_end0
-
-push 1
-ret
-
-If_end0:
-
-push 0
-ret
-
-solveLinear:
-pop [rfx + 0]
-pop [rfx + 1]
-
-push -1
-mul 
-div 
-ret
-
+pop rax
 solveSquare:
-pop [rfx + 0]
-pop [rfx + 1]
-pop [rfx + 2]
-
-
-If_begin1:
-
+pop [rax + 0]
+pop [rax + 1]
+pop [rax + 2]
+IfBegin0:
 push 36
-push rfx
+push rax
 add
-pop rfx
-
-call :isZero
-
-push rfx
+pop rax
+call isZero:
+push rax
 push 36
 sub
-pop rfx
-
-
-pop [rfx + 4]
+pop rax
+pop [rax + 4]
 out
 push 0
 ret
-
-If_end1:
-
-
-If_begin2:
-
+IfEnd0:
+IfBegin1:
 push 36
-push rfx
+push rax
 add
-pop rfx
-
-call :isZero
-
-push rfx
+pop rax
+call isZero:
+push rax
 push 36
 sub
-pop rfx
-
-
-pop [rfx + 9]
+pop rax
+pop [rax + 9]
 out
 push 0
 out
 push 0
 ret
-
-If_end2:
-
+IfEnd1:
 push 2
 pow 
 push 4
 mul 
 mul 
 sub 
-pop [rfx + 13]
+pop [rax + 13]
 push -1
 mul 
 push 2
 mul 
 div 
-pop [rfx + 17]
-
-If_begin3:
+pop [rax + 17]
+IfBegin2:
 push 0
-jbe :If_end3
-
-pop [rfx + 21]
+ja  IfEnd2:
+pop [rax + 21]
 push 2
 mul 
 div 
-pop [rfx + 23]
+pop [rax + 23]
 add 
-pop [rfx + 26]
+pop [rax + 26]
 add 
-pop [rfx + 29]
+pop [rax + 29]
 out
 out
-
-If_end3:
-
-
-If_begin4:
-
+IfEnd2:
+IfBegin3:
 push 36
-push rfx
+push rax
 add
-pop rfx
-
-call :isZero
-
-push rfx
+pop rax
+call isZero:
+push rax
 push 36
 sub
-pop rfx
-
-
+pop rax
 out
-
-If_end4:
-
-
+IfEnd3:
+isZero:
+pop [rax + 0]
+IfBegin4:
+push 0
+je  IfEnd4:
+push 1
+ret
+IfEnd4:
+push 0
+ret
+solveLinear:
+pop [rax + 0]
+pop [rax + 1]
+push -1
+mul 
+div 
+ret
