@@ -98,7 +98,20 @@ typedef struct tree_t
 
 } tree_t;
 
-//=========================================================================
+//====================================================================================================================
+
+#define MAKE_FRMT_MSG(sign) fprintf(dot_out, "\n\t\t\""#sign"_%p\"[shape = \"ellipse\", label = \""#sign"\", \
+                                    color=\"#900000\", style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node)
+                                    
+
+#define MAKE_CON_NUM(sign)  fprintf(dot_out, "\t\t\""#sign"_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node)
+#define MAKE_CON_VAR(sign)  fprintf(dot_out, "\t\t\""#sign"_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node)
+#define MAKE_CON_OPB(sign)  fprintf(dot_out, "\t\t\""#sign"_%p\"->", node_prev)
+#define MAKE_CON_OPE(sign)  fprintf(dot_out, "\""#sign"_%p\";\n", node)
+#define MAKE_CON_KEYB(sign) fprintf(dot_out, "\t\t\""#sign"_%p\"->", node_prev)
+#define MAKE_CON_KEYE(sign) fprintf(dot_out, "\""#sign"_%p\";\n", node)
+
+//====================================================================================================================
 
 int treeCtor(tree_t* tree, name_t name_program);
 node_t* createNodeOp(int val, node_t* left, node_t* right);

@@ -27,8 +27,6 @@ int parseArgs(int argc, char* argv[], name_t* name_program)
         *name_program = argv[1];
     }
 
-    //*name_program = "files/program.txt";
-
     return LANG_SUCCESS;
 }
 
@@ -256,7 +254,7 @@ node_t* getN(program_t* program)
         int val = 0;
         char* sOld = program->current_symbol;
 
-        while((*program->current_symbol >= '0') && (*program->current_symbol <= '9'))
+        while(isdigit(*program->current_symbol))
         {
             val = (val * 10) + (*program->current_symbol - '0');
             ++program->current_symbol;
@@ -358,11 +356,8 @@ node_t* getP(program_t* program)
 
         return createNodeOp(OP_OPENBRT, val, createOp(OP_CLOSBRT));
     }
-    else
-    {
-        val = getN(program);
-    }
-
+    val = getN(program);
+    
     return val;
 }
 

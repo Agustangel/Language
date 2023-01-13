@@ -112,25 +112,8 @@ node_t* copyNode(node_t* prev_node)
     default:
         break;
     }
-
-    if(prev_node->left != NULL)
-    {
-        node_t* left = copyNode(prev_node->left);
-        node->left = left;
-    }
-    else
-    {
-        node->left  = NULL;
-    }
-    
-    if(prev_node->right != NULL)
-    {
-        node_t* right = copyNode(prev_node->right);
-        node->right = right;
-        
-        return node;
-    }
-    node->right = NULL;
+    node->left  = (prev_node->left  != NULL) ? copyNode(prev_node->left)  : NULL;
+    node->right = (prev_node->right != NULL) ? copyNode(prev_node->right) : NULL;
 
     return node;     
 }
@@ -284,49 +267,44 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
             break;
 
         case OP_ADD:
-            fprintf(dot_out, "\n\t\t\"+_%p\"[shape = \"ellipse\", label = \"+\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(+);
             break;
 
         case OP_SUB:
-            fprintf(dot_out, "\n\t\t\"-_%p\"[shape = \"ellipse\", label = \"-\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(-);
             break;
 
         case OP_MUL:
-            fprintf(dot_out, "\n\t\t\"*_%p\"[shape = \"ellipse\", label = \"*\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(*);
             break;
 
         case OP_DIV:
-            fprintf(dot_out, "\n\t\t\"/_%p\"[shape = \"ellipse\", label = \"/\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(/);
             break;
 
         case OP_POW:
-            fprintf(dot_out, "\n\t\t\"^_%p\"[shape = \"ellipse\", label = \"^\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(^);
             break;
 
         case OP_SIN:
-            fprintf(dot_out, "\n\t\t\"sin_%p\"[shape = \"ellipse\", label = \"sin\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(sin);
             break;
 
         case OP_COS:
-            fprintf(dot_out, "\n\t\t\"cos_%p\"[shape = \"ellipse\", label = \"cos\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(cos);
             break;
 
         case OP_EXP:
-            fprintf(dot_out, "\n\t\t\"exp_%p\"[shape = \"ellipse\", label = \"exp\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(exp);
             break;
 
         case OP_LN:
-            fprintf(dot_out, "\n\t\t\"ln_%p\"[shape = \"ellipse\", label = \"ln\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
-            break;            
+            MAKE_FRMT_MSG(ln);
+            break;
+                               
+        case OP_SQRT:
+            MAKE_FRMT_MSG(sqrt);
+            break;
 
         case OP_OPENBRT:
             fprintf(dot_out, "\n\t\t\"(_%p\"[shape = \"ellipse\", label = \"(\", color=\"#900000\", \
@@ -339,23 +317,19 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
             break; 
 
         case OP_CONNECT:
-            fprintf(dot_out, "\n\t\t\"con_%p\"[shape = \"ellipse\", label = \"con\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(con);
             break; 
 
         case OP_EQUAL:
-            fprintf(dot_out, "\n\t\t\"=_%p\"[shape = \"ellipse\", label = \"=\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(=);
             break;  
 
         case OP_MORE:
-            fprintf(dot_out, "\n\t\t\">_%p\"[shape = \"ellipse\", label = \">\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(>);
             break; 
 
         case OP_LESS:
-            fprintf(dot_out, "\n\t\t\"<_%p\"[shape = \"ellipse\", label = \"<\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(<);
             break;
 
         case OP_COMMA:
@@ -363,19 +337,12 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
                                style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
             break;
 
-        case OP_SQRT:
-            fprintf(dot_out, "\n\t\t\"sqrt_%p\"[shape = \"ellipse\", label = \"sqrt\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
-            break;
-
         case OP_AND:
-            fprintf(dot_out, "\n\t\t\"&_%p\"[shape = \"ellipse\", label = \"&\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(&);
             break;
 
         case OP_OR:
-            fprintf(dot_out, "\n\t\t\"|_%p\"[shape = \"ellipse\", label = \"|\", color=\"#900000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(|);
             break;
 
         default:
@@ -398,23 +365,19 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
         switch(node->data.keyValue)
         {
         case KEY_DEC:
-            fprintf(dot_out, "\n\t\t\"dec_%p\"[shape = \"cube\", label = \"dec\", color=\"#800000\", \
-                               style=\"filled\", fillcolor = \"#FFF6D0\"];\n", node);
+            MAKE_FRMT_MSG(dec);
             break;
 
         case KEY_IF:
-            fprintf(dot_out, "\n\t\t\"if_%p\"[shape = \"ellipse\", label = \"if\", color=\"#800000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(if);
             break;
 
         case KEY_WHILE:
-            fprintf(dot_out, "\n\t\t\"while_%p\"[shape = \"ellipse\", label = \"while\", color=\"#800000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(while);
             break;
 
         case KEY_ASSIGN:
-            fprintf(dot_out, "\n\t\t\":=_%p\"[shape = \"ellipse\", label = \":=\", color=\"#800000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(:=);
             break;
 
         case KEY_FUNC:
@@ -423,8 +386,7 @@ int dumpGraphNode(node_t* node, FILE* dot_out)
             break;
 
         case KEY_RET:
-            fprintf(dot_out, "\n\t\t\"ret_%p\"[shape = \"ellipse\", label = \"ret\", color=\"#800000\", \
-                               style=\"filled\", fillcolor = \"#D0FDFF\"];\n", node);
+            MAKE_FRMT_MSG(ret);;
             break;
 
         default:
@@ -463,39 +425,43 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         switch(operation)
         {
         case OP_ADD:
-            fprintf(dot_out, "\t\t\"+_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(+);
             break;
         
         case OP_SUB:
-            fprintf(dot_out, "\t\t\"-_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(-);
             break;
 
         case OP_MUL:
-            fprintf(dot_out, "\t\t\"*_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(*);
             break;
 
         case OP_DIV:
-            fprintf(dot_out, "\t\t\"/_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(/);
             break;
 
         case OP_POW:
-            fprintf(dot_out, "\t\t\"^_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(^);
             break;
 
         case OP_SIN:
-            fprintf(dot_out, "\t\t\"sin_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(sin);
             break;
 
         case OP_COS:
-            fprintf(dot_out, "\t\t\"cos_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(cos);
             break;
 
         case OP_EXP:
-            fprintf(dot_out, "\t\t\"exp_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(exp);
             break;
 
         case OP_LN:
-            fprintf(dot_out, "\t\t\"ln_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(ln);
+            break;
+
+        case OP_SQRT:
+            MAKE_CON_NUM(sqrt);
             break;
 
         case OP_OPENBRT:
@@ -506,28 +472,28 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\")_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
             break;
 
+        case OP_COMMA:
+            fprintf(dot_out, "\t\t\",_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            break;
+
         case KEY_ASSIGN:
-            fprintf(dot_out, "\t\t\":=_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(:=);
             break;
 
         case OP_EQUAL:
-            fprintf(dot_out, "\t\t\"=_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(=);
             break;
 
         case OP_MORE:
-            fprintf(dot_out, "\t\t\">_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(>);
             break;
 
         case OP_LESS:
-            fprintf(dot_out, "\t\t\"<_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(<);
             break;
 
         case KEY_RET:
-            fprintf(dot_out, "\t\t\"ret_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
-            break;
-
-        case OP_SQRT:
-            fprintf(dot_out, "\t\t\"sqrt_%p\"->\"%d_%p\";\n", node_prev, node->data.intValue, node);
+            MAKE_CON_NUM(ret);
             break;
 
         case KEY_FUNC:
@@ -543,39 +509,43 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         switch(operation)
         {
         case OP_ADD:
-            fprintf(dot_out, "\t\t\"+_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);            
+            MAKE_CON_VAR(+);            
             break;
         
         case OP_SUB:
-            fprintf(dot_out, "\t\t\"-_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(-);
             break;
 
         case OP_MUL:
-            fprintf(dot_out, "\t\t\"*_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node); 
+            MAKE_CON_VAR(*); 
             break;
 
         case OP_DIV:
-            fprintf(dot_out, "\t\t\"/_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node); 
+            MAKE_CON_VAR(/);
             break;
 
         case OP_POW:
-            fprintf(dot_out, "\t\t\"^_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node); 
+            MAKE_CON_VAR(^);
             break;
 
         case OP_SIN:
-            fprintf(dot_out, "\t\t\"sin_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(sin);
             break;
 
         case OP_COS:
-            fprintf(dot_out, "\t\t\"cos_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(cos);
             break;
 
         case OP_EXP:
-            fprintf(dot_out, "\t\t\"exp_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(exp);
             break;
 
         case OP_LN:
-            fprintf(dot_out, "\t\t\"ln_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(ln);
+            break;
+
+        case OP_SQRT:
+            MAKE_CON_VAR(sqrt);
             break;
 
         case OP_OPENBRT:
@@ -587,19 +557,19 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             break;
 
         case KEY_ASSIGN:
-            fprintf(dot_out, "\t\t\":=_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(:=);
             break;
 
         case OP_EQUAL:
-            fprintf(dot_out, "\t\t\"=_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(=);
             break;
 
         case OP_MORE:
-            fprintf(dot_out, "\t\t\">_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(>);
             break;
 
         case OP_LESS:
-            fprintf(dot_out, "\t\t\"<_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(<);
             break;
 
         case OP_COMMA:
@@ -607,15 +577,11 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             break;
 
         case KEY_RET:
-            fprintf(dot_out, "\t\t\"ret_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
+            MAKE_CON_VAR(ret);
             break;
 
         case KEY_FUNC:
             fprintf(dot_out, "\t\t\"%s_%p\"->\"%c_%p\";\n", node_prev->name, node_prev, *node->data.varValue, node);
-            break;
-
-        case OP_SQRT:
-            fprintf(dot_out, "\t\t\"sqrt_%p\"->\"%c_%p\";\n", node_prev, *node->data.varValue, node);
             break;
 
         default:
@@ -627,39 +593,43 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         switch(operation)
         {
         case OP_ADD:
-            fprintf(dot_out, "\t\t\"+_%p\"->", node_prev);
+            MAKE_CON_OPB(+);
             break;
         
         case OP_SUB:
-            fprintf(dot_out, "\t\t\"-_%p\"->", node_prev);
+            MAKE_CON_OPB(-);
             break;
 
         case OP_MUL:
-            fprintf(dot_out, "\t\t\"*_%p\"->", node_prev);
+            MAKE_CON_OPB(*);
             break;
 
         case OP_DIV:
-            fprintf(dot_out, "\t\t\"/_%p\"->", node_prev);
+            MAKE_CON_OPB(/);
             break;
 
         case OP_POW:
-            fprintf(dot_out, "\t\t\"^_%p\"->", node_prev);
+            MAKE_CON_OPB(^);
             break;
 
         case OP_SIN:
-            fprintf(dot_out, "\t\t\"sin_%p\"->", node_prev);
+            MAKE_CON_OPB(sin);
             break;
 
         case OP_COS:
-            fprintf(dot_out, "\t\t\"cos_%p\"->", node_prev);
+            MAKE_CON_OPB(cos);
             break;
 
         case OP_EXP:
-            fprintf(dot_out, "\t\t\"exp_%p\"->", node_prev);
+            MAKE_CON_OPB(exp);
             break;
 
         case OP_LN:
-            fprintf(dot_out, "\t\t\"ln_%p\"->", node_prev);
+            MAKE_CON_OPB(ln);
+            break;
+
+        case OP_SQRT:
+            MAKE_CON_OPB(sqrt);
             break;
 
         case OP_OPENBRT:
@@ -671,35 +641,31 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             break;
 
         case OP_CONNECT:
-            fprintf(dot_out, "\t\t\"con_%p\"->", node_prev);
+            MAKE_CON_OPB(con);
             break;
 
         case OP_EQUAL:
-            fprintf(dot_out, "\t\t\"=_%p\"->", node_prev);
+            MAKE_CON_OPB(=);
             break;
 
         case OP_MORE:
-            fprintf(dot_out, "\t\t\">_%p\"->", node_prev);
+            MAKE_CON_OPB(>);
             break;
 
         case OP_LESS:
-            fprintf(dot_out, "\t\t\"<_%p\"->", node_prev);
-            break;
-
-        case KEY_START:
-            fprintf(dot_out, "\t\t\"start_%p\"->", node_prev);
+            MAKE_CON_OPB(<);
             break;
 
         case KEY_ASSIGN:
-            fprintf(dot_out, "\t\t\":=_%p\"->", node_prev);
+            MAKE_CON_KEYB(:=);
             break;
 
         case KEY_IF:
-            fprintf(dot_out, "\t\t\"if_%p\"->", node_prev);
+            MAKE_CON_KEYB(if);
             break;
 
         case KEY_WHILE:
-            fprintf(dot_out, "\t\t\"while_%p\"->", node_prev);
+            MAKE_CON_KEYB(while);
             break;
 
         case KEY_FUNC:
@@ -711,23 +677,19 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             break;
 
         case KEY_RET:
-            fprintf(dot_out, "\t\t\"ret_%p\"->", node_prev);
-            break;
-
-        case OP_SQRT:
-            fprintf(dot_out, "\t\t\"sqrt_%p\"->", node_prev);
+            MAKE_CON_KEYB(ret);
             break;
 
         case OP_AND:
-            fprintf(dot_out, "\t\t\"&_%p\"->", node_prev);
+            MAKE_CON_OPB(&);
             break;
 
         case OP_OR:
-            fprintf(dot_out, "\t\t\"|_%p\"->", node_prev);
+            MAKE_CON_OPB(|);
             break;
 
         case KEY_DEC:
-            fprintf(dot_out, "\t\t\"dec_%p\"->", node_prev);
+            MAKE_CON_OPB(dec);
             break;
 
         default:
@@ -737,39 +699,43 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         switch(node->data.opValue)
         {
         case OP_ADD:
-            fprintf(dot_out, "\"+_%p\";\n", node);
+            MAKE_CON_OPE(+);
             break;
         
         case OP_SUB:
-            fprintf(dot_out, "\"-_%p\";\n", node);
+            MAKE_CON_OPE(-);
             break;
 
         case OP_MUL:
-            fprintf(dot_out, "\"*_%p\";\n", node);
+            MAKE_CON_OPE(*);
             break;
 
         case OP_DIV:
-            fprintf(dot_out, "\"/_%p\";\n", node);
+            MAKE_CON_OPE(/);
             break;
 
         case OP_POW:
-            fprintf(dot_out, "\"^_%p\";\n", node);
+            MAKE_CON_OPE(^);
             break;
 
         case OP_SIN:
-            fprintf(dot_out, "\"sin_%p\";\n", node);
+            MAKE_CON_OPE(sin);
             break;
 
         case OP_COS:
-            fprintf(dot_out, "\"cos_%p\";\n", node);
+            MAKE_CON_OPE(cos);
             break;
 
         case OP_EXP:
-            fprintf(dot_out, "\"exp_%p\";\n", node);
+            MAKE_CON_OPE(exp);
             break;
 
         case OP_LN:
-            fprintf(dot_out, "\"ln_%p\";\n", node);
+            MAKE_CON_OPE(ln);
+            break;
+
+        case OP_SQRT:
+            MAKE_CON_OPE(sqrt);
             break;
 
         case OP_OPENBRT:
@@ -781,35 +747,31 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             break;
 
         case OP_EQUAL:
-            fprintf(dot_out, "\"=_%p\";\n", node);
+            MAKE_CON_OPE(=);
             break;
 
         case OP_MORE:
-            fprintf(dot_out, "\">_%p\";\n", node);
+            MAKE_CON_OPE(>);
             break;
 
         case OP_LESS:
-            fprintf(dot_out, "\"<_%p\";\n", node);
+            MAKE_CON_OPE(<);
             break;
 
         case OP_CONNECT:
-            fprintf(dot_out, "\"con_%p\";\n", node);
+            MAKE_CON_OPE(con);
             break;
 
         case OP_COMMA:
             fprintf(dot_out, "\",_%p\";\n", node);
             break;
 
-        case OP_SQRT:
-            fprintf(dot_out, "\"sqrt_%p\";\n", node);
-            break;
-
         case OP_AND:
-            fprintf(dot_out, "\"&_%p\";\n", node);
+            MAKE_CON_OPE(&);
             break;
 
         case OP_OR:
-            fprintf(dot_out, "\"|_%p\";\n", node);
+            MAKE_CON_OPE(|);
             break;
 
         default:
@@ -821,15 +783,19 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         switch(operation)
         {
         case KEY_DEC:
-            fprintf(dot_out, "\t\t\"dec_%p\"->", node_prev);
+            MAKE_CON_KEYB(dec);
             break;
 
-        case KEY_WHILE:
-            fprintf(dot_out, "\t\t\"while_%p\"->", node_prev);
+        case KEY_ASSIGN:
+            MAKE_CON_KEYB(:=);
             break;
 
         case KEY_IF:
-            fprintf(dot_out, "\t\t\"if_%p\"->", node_prev);
+            MAKE_CON_KEYB(if);
+            break;
+
+        case KEY_WHILE:
+            MAKE_CON_KEYB(while);
             break;
 
         case OP_CONNECT:
@@ -840,17 +806,14 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             fprintf(dot_out, "\t\t\"%s_%p\"->", node_prev->name, node_prev);
             break;
 
-        case KEY_ASSIGN:
-            fprintf(dot_out, "\t\t\":=_%p\"->", node_prev);
-            break;
-
         case OP_AND:
-            fprintf(dot_out, "\t\t\"&_%p\"->", node_prev);
+            MAKE_CON_OPB(&);
             break;
 
         case OP_OR:
-            fprintf(dot_out, "\t\t\"|_%p\"->", node_prev);
+            MAKE_CON_OPB(|);
             break;
+
         default:
             break;
         }
@@ -858,7 +821,7 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         switch(node->data.opValue)
         {
         case OP_CONNECT:
-            fprintf(dot_out, "\"con_%p\";\n", node);
+            MAKE_CON_OPE(con);
             break;
 
         default:
@@ -867,19 +830,19 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
         switch(node->data.keyValue)
         {
         case KEY_DEC:
-            fprintf(dot_out, "\"dec_%p\";\n", node);
+            MAKE_CON_KEYE(dec);
             break;
 
         case KEY_WHILE:
-            fprintf(dot_out, "\"while_%p\";\n", node);
+            MAKE_CON_KEYE(while);
             break;
 
         case KEY_IF:
-            fprintf(dot_out, "\"if_%p\";\n", node);
+            MAKE_CON_KEYE(if);
             break;
 
         case KEY_ASSIGN:
-            fprintf(dot_out, "\":=_%p\";\n", node);
+            MAKE_CON_KEYE(:=);
             break;
 
         case KEY_FUNC:
@@ -887,7 +850,7 @@ int fprintfConnection(node_t* node_prev, node_t* node, int operation, FILE* dot_
             break;
 
         case KEY_RET:
-            fprintf(dot_out, "\t\t\"ret_%p\";\n", node);
+            MAKE_CON_KEYE(ret);
             break;
 
         default:
