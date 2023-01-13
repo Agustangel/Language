@@ -454,6 +454,10 @@ node_t* getIf(program_t* program)
         {
             val_1 = createNodeOp(OP_OR, val_1, val_2);
         }
+        else
+        {
+            return NULL;
+        }
     }
     CHECK(*program->current_symbol == ')', NULL);
     ++program->current_symbol;
